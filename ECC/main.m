@@ -12,10 +12,11 @@
 #import "LTEccTool.h"
 int main(int argc, const char * argv[]) {
     
+     
     
     NSString *help = @"lwEcc \ng [-prikey/secKey/s prikey]  generate keypair\
-    \ne  -pubkey/secKey/s pubkey msg\
-    \nd  -prikey/p prikey cipher\
+    \ne  -pubkey/secKey/s pubkey -m msg\
+    \nd  -prikey/p prikey -m ciphermsg\
     ";
     NSLog(@"%@",help);
     
@@ -45,6 +46,33 @@ int main(int argc, const char * argv[]) {
     if (!strPubKey) {
         strPubKey = dic[@"pubKey"];
     }
+    
+//    {
+//        while (1) {
+//            NSDictionary *dicTmp = [[LTEccTool shared] genKeyPair:nil];
+//            NSDictionary *dicTmp2 = [[LTEccTool shared] genKeyPair:dicTmp[@"priKey"]];
+//            
+//            if (![dicTmp[@"pubKey"] isEqual:dicTmp2[@"pubKey"]])  {
+//                NSLog(@"--------------------- 123");
+//                
+//                NSLog(@"dicTmp %@",dicTmp);
+//                NSLog(@"dicTmp2 %@",dicTmp2);
+//                return 1;
+//            }
+//            else{
+//                static int j = 0;
+//                if (j ++ % 9000 == 0) {
+//                    NSLog(@"%d",j);
+//                }
+//                
+//            }
+//        }
+//       
+//    }
+//    
+ 
+    
+    
  
     
     if (argc >= 2  && 0 == strcmp(argv[1], "g")) {
@@ -60,8 +88,8 @@ int main(int argc, const char * argv[]) {
             return 1;
         }
         
-        NSString *strmsg = [[NSString alloc] initWithUTF8String:argv[argc -1]];
-        NSLog(@"%@",strmsg);
+        NSString *strmsg = dic[@"m"];
+        NSLog(@"Msg:%@",strmsg);
         
         NSString *result = [[LTEccTool shared] ecc_encrypt:strmsg pubkey:strPubKey];
         printf("\n%s",result.UTF8String);
@@ -74,16 +102,14 @@ int main(int argc, const char * argv[]) {
             return 1;
         }
         
-        NSString *strmsg = [[NSString alloc] initWithUTF8String:argv[argc -1]];
-        NSLog(@"%@",strmsg);
+        NSString *strmsg = dic[@"m"];
+        NSLog(@"Msg:%@",strmsg);
         
         NSString *result = [[LTEccTool shared] ecc_decrypt:strmsg private:strSecKey];
         printf("\n%s",result.UTF8String);
         
     }
     
-     
-     
  
     return 0;
 }

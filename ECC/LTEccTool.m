@@ -158,6 +158,7 @@ static int my_ecdh_hash_function(
 - (NSDictionary *)genKeyPair:(NSString *)privateKey{
     NSData *dataPrivate = nil;
     void* pPrivate = NULL;
+    unsigned char _keysNew[32];
     if (privateKey) {
         dataPrivate = [self base64ToData:privateKey];
         pPrivate = (void *) dataPrivate.bytes;
@@ -167,10 +168,12 @@ static int my_ecdh_hash_function(
         }
     }
     else{
-        unsigned char keys[32];
-        pPrivate = keys;
+        
+        pPrivate = _keysNew;
         [self genSecKey:pPrivate];
     }
+    
+    
     
     secp256k1_pubkey pubkey;
     int r =secp256k1_ec_pubkey_create(self.ctx, &pubkey,pPrivate);

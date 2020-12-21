@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "C42B4BBA258CBCF300C0EE5B"
-               BuildableName = "ECC"
+               BuildableName = "lwEcc"
                BlueprintName = "ECC"
                ReferencedContainer = "container:ECC.xcodeproj">
             </BuildableReference>
@@ -46,7 +46,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "C42B4BBA258CBCF300C0EE5B"
-            BuildableName = "ECC"
+            BuildableName = "lwEcc"
             BlueprintName = "ECC"
             ReferencedContainer = "container:ECC.xcodeproj">
          </BuildableReference>
@@ -63,7 +63,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "C42B4BBA258CBCF300C0EE5B"
-            BuildableName = "ECC"
+            BuildableName = "lwEcc"
             BlueprintName = "ECC"
             ReferencedContainer = "container:ECC.xcodeproj">
          </BuildableReference>
