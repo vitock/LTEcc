@@ -70,8 +70,7 @@
 
 
 - (void)parser:(NSString *)strBase64{
-    NSData *data = [[NSData alloc] initWithBase64EncodedString:strBase64 options:NSDataBase64DecodingIgnoreUnknownCharacters];
-    
+    NSData *data = [LTEccTool  base64DeCode:strBase64];
     
     UInt16 ivLen = 0;
     UInt16 macLen = 0;
@@ -207,7 +206,7 @@ static int my_ecdh_hash_function(
 }
  
 - (NSData *)base64ToData:(NSString *)strBase64{
-    return [[NSData alloc] initWithBase64EncodedString:strBase64 options:NSDataBase64DecodingIgnoreUnknownCharacters];
+    return [LTEccTool base64DeCode:strBase64];
 }
 
 
@@ -225,7 +224,7 @@ static int my_ecdh_hash_function(
     }
     
     secp256k1_pubkey pubkey ;
-    NSData *dataPub = [[NSData alloc] initWithBase64EncodedString: pubkeystring options:NSDataBase64DecodingIgnoreUnknownCharacters];
+    NSData *dataPub = [LTEccTool base64DeCode:pubkeystring];
     
     int r = secp256k1_ec_pubkey_parse(self.ctx, &pubkey, dataPub.bytes, dataPub.length);
     if (r == 0 ) {
@@ -326,7 +325,7 @@ static int my_ecdh_hash_function(
     
     
     
-    NSData *dataPrikey = [[NSData alloc] initWithBase64EncodedString:prikey options:0];
+    NSData *dataPrikey = [LTEccTool base64DeCode:prikey];
     const unsigned char *pPrivateKey = dataPrikey.bytes;
     if (!secp256k1_ec_seckey_verify(self.ctx, pPrivateKey)) {
         return  nil;
@@ -392,6 +391,18 @@ static int my_ecdh_hash_function(
     NSData *data = [self _ecc_decrypt:strCipher private:prikey];
     NSData *data2 = [data gzipInflate];
     return [[NSString alloc] initWithData:data2 encoding:NSUTF8StringEncoding];;
+}
+
++ (NSData *)base64DeCode:(NSString *)strBase64{
+    NSData *data = [[NSData alloc] initWithBase64EncodedData:strBase64 options:NSDataBase64DecodingIgnoreUnknownCharacters];
+    
+    if (data) {
+        return data;
+    }else{
+        [NSException raise:@"base64 Errir" format:@"base64 Error: \n %@",strBase64];
+         return nil;
+    }
+    
 }
 
  

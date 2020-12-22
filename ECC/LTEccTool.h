@@ -19,7 +19,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (NSString *) ecc_encrypt:(NSString *)strPlainTxt pubkey:(NSString *)pubkeystring;
 - (NSString *)ecc_decrypt:(NSString *)strCipher private:(NSString *)prikey;
 
-
++ (NSData *)base64DeCode:(NSString *)strBase64;
 - (void)test;
 @end
 
