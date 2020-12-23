@@ -237,16 +237,16 @@ static int my_ecdh_hash_function(
     unsigned char randKey[32];
     [self genSecKey:randKey];
     
-    
     secp256k1_pubkey randomPub;
     r = secp256k1_ec_pubkey_create(self.ctx, &randomPub, randKey);
     if (r == 0 ) {
         fprintf(stderr, "pubkey create fail");
         return nil;
     }
-    
     char outHash[64];
     r = secp256k1_ecdh(self.ctx, outHash, &pubkey, randKey, my_ecdh_hash_function, NULL);
+    /// 不需要了,重置randkey
+    [self genSecKey:randKey];
     if (r == 0) {
         fprintf(stderr, "pubkey is not falid");
         return nil;

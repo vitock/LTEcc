@@ -76,8 +76,11 @@ int main(int argc, const char * argv[]) {
         \ne  -pubkey/secKey/s pubkey -m msg\
         \nd  -prikey/p prikey -m ciphermsg\n";
         fprintf(stdout,"%s", help.UTF8String);
+        fprintf(stdout,"\nbuild:%s %s",__DATE__,__TIME__);
+        
     }
     
+      
     return 0;
 }
 
