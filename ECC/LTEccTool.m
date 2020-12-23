@@ -139,10 +139,9 @@ static int my_ecdh_hash_function(
     self = [super init];
     if (self ) {
         size_t blocksize = secp256k1_context_preallocated_size(SECP256K1_CONTEXT_SIGN);
-        
         unsigned char *p = malloc(blocksize);
         self.ctx = secp256k1_context_preallocated_create(p,SECP256K1_CONTEXT_SIGN);
-        char seed[32] = "f26a205df0d5470062b6440c6110676d";
+        const char seed[32] = "312255ff8b9db2d1d43bffbe44664238";
         arc4random_buf(seed, 32);
         int r = secp256k1_context_randomize(self.ctx,seed);
         

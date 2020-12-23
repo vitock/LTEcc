@@ -11,6 +11,7 @@
 		C42B4BC8258CBDD900C0EE5B /* libsecp256k1.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C42B4BC7258CBDD900C0EE5B /* libsecp256k1.a */; };
 		C4B65EA825906E5300B1437A /* LTEccTool.m in Sources */ = {isa = PBXBuildFile; fileRef = C4B65EA725906E5300B1437A /* LTEccTool.m */; };
 		C4B65EAC25909EDD00B1437A /* NSData+Compression.m in Sources */ = {isa = PBXBuildFile; fileRef = C4B65EAB25909EDD00B1437A /* NSData+Compression.m */; };
+		C4B65EB525935BFD00B1437A /* randomart.c in Sources */ = {isa = PBXBuildFile; fileRef = C4B65EB425935BFD00B1437A /* randomart.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -39,6 +40,8 @@
 		C4B65EA725906E5300B1437A /* LTEccTool.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LTEccTool.m; sourceTree = "<group>"; };
 		C4B65EAA25909EDD00B1437A /* NSData+Compression.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSData+Compression.h"; sourceTree = "<group>"; };
 		C4B65EAB25909EDD00B1437A /* NSData+Compression.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSData+Compression.m"; sourceTree = "<group>"; };
+		C4B65EB325935BFD00B1437A /* randomart.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = randomart.h; sourceTree = "<group>"; };
+		C4B65EB425935BFD00B1437A /* randomart.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = randomart.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -75,6 +78,8 @@
 			children = (
 				C42B4BC9258CC0C400C0EE5B /* include */,
 				C42B4BBE258CBCF300C0EE5B /* main.m */,
+				C4B65EB325935BFD00B1437A /* randomart.h */,
+				C4B65EB425935BFD00B1437A /* randomart.c */,
 				C4B65EA625906E5300B1437A /* LTEccTool.h */,
 				C4B65EA725906E5300B1437A /* LTEccTool.m */,
 				C4B65EAA25909EDD00B1437A /* NSData+Compression.h */,
@@ -160,6 +165,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C4B65EB525935BFD00B1437A /* randomart.c in Sources */,
 				C42B4BBF258CBCF300C0EE5B /* main.m in Sources */,
 				C4B65EAC25909EDD00B1437A /* NSData+Compression.m in Sources */,
 				C4B65EA825906E5300B1437A /* LTEccTool.m in Sources */,
