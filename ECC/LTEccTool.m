@@ -200,9 +200,10 @@ static int my_ecdh_hash_function(
 
 - (void)genSecKey:(unsigned char *)secKey32{
     do {
-        arc4random_buf(secKey32, 32);
+        do {
+            arc4random_buf(secKey32, 32);
+        } while (arc4random_uniform(10) == 0 );
     } while (!secp256k1_ec_seckey_verify(self.ctx , secKey32));
-    
 }
  
 - (NSData *)base64ToData:(NSString *)strBase64{

@@ -22,6 +22,33 @@ NSData *readStdIn(){
     return [[NSData alloc] initWithBytes:buffer length:t];
 }
 
+void printKey(const void *key,int  size){
+    if (!key) {
+        fprintf(stderr, "\033[31;47m No Key \033[0m");
+        return;
+    }
+    int ZeroCount= 0;
+    int OneCount = 0;
+    for (int i = 0 ; i < size; ++ i ) {
+        if ( i % 3 == 0) {
+            printf("\n");
+        }
+        
+        uint8 p = ((uint8 *)key)[i];
+        for (int j = 0 ; j < 8; ++ j ) {
+            if(p & (1 << j)){
+                printf("o");
+                OneCount ++;
+                
+            }else{
+                printf(".");
+                ZeroCount ++;
+            }
+        }
+    }
+    printf("\n0:%d  1:%d\n",ZeroCount,OneCount);
+}
+
 int main(int argc, const char * argv[]) {
     
     
@@ -57,8 +84,13 @@ int main(int argc, const char * argv[]) {
     
     if (argc >= 2  && 0 == strcmp(argv[1], "g")) {
         NSDictionary *dic = [[LTEccTool shared] genKeyPair:strSecKey];
-        printf("priKey:%s",[(NSString *)dic[@"priKey"]  UTF8String]);
-        printf("\npubKey:%s",[(NSString *)dic[@"pubKey"]  UTF8String]);
+        NSString *priKey = dic[@"priKey"];
+        NSString *pubKey = dic[@"pubKey"];
+        NSData *data2 = [LTEccTool  base64DeCode:priKey];
+        printKey(data2.bytes,data2.length);
+        
+        printf("priKey:%s",[priKey  UTF8String]);
+        printf("\npubKey:%s",[pubKey  UTF8String]);
     }
     
     else if (argc >= 2  && 0 == strcmp(argv[1], "e")) {
