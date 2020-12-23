@@ -22,7 +22,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (NSData *)ecc_decrypt:(NSData *)dataCipher private:(NSString *)prikey;
 + (NSData *)base64DeCode:(NSString *)strBase64;
 
-- (void)test;
+- (NSString *)bytesToBase64:(void *)byte lenOfByte:(size_t )len;
 @end
 
 NS_ASSUME_NONNULL_END
