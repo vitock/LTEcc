@@ -37,7 +37,7 @@
 }
 
 
-- (NSString *)toBaseString{
+- (NSData *)toResultData{
     ECCEncResult *r = self;
     UInt16 ivLen = r.iv.length;
     UInt16 macLen = r.mac.length;
@@ -64,13 +64,11 @@
     [dataOut appendData:r.ephemPubkeyData];
     [dataOut appendData:r.dataEnc];
     
-    NSData *data2 = [dataOut base64EncodedDataWithOptions:0];
-    return [[NSString alloc] initWithData:data2 encoding:NSUTF8StringEncoding];
+    return  dataOut;
 }
 
 
-- (void)parser:(NSString *)strBase64{
-    NSData *data = [LTEccTool  base64DeCode:strBase64];
+- (void)parser:(NSData *)data{
     
     UInt16 ivLen = 0;
     UInt16 macLen = 0;
@@ -308,25 +306,17 @@ static int my_ecdh_hash_function(
 }
 
  
-- (NSString *) ecc_encryptData:(NSData*)data pubkey:(NSString *)pubkeystring{
-    NSData *dataCompress = [data gzipDeflate];
-    ECCEncResult *r = [self _ecc_encrypt:dataCompress pubkey:pubkeystring];
-    return [r toBaseString];
-}
-- (NSString *) ecc_encrypt:(NSString *)strPlainTxt pubkey:(NSString *)pubkeystring{
+- (NSData *) ecc_encrypt:(NSData *)dataOrigin pubkey:(NSString *)pubkeystring{
     
-    NSData *dataOrigin = [strPlainTxt dataUsingEncoding:NSUTF8StringEncoding];
     NSData *dataCompress = [dataOrigin gzipDeflate];
-    
-    
     ECCEncResult *r = [self _ecc_encrypt:dataCompress pubkey:pubkeystring];
-    return [r toBaseString];
- 
+    return [r toResultData];
+
 }
 
-- (NSData *)_ecc_decrypt:(NSString *)strCipher private:(NSString *)prikey{
+- (NSData *)_ecc_decrypt:(NSData *)dataCipher private:(NSString *)prikey{
     ECCEncResult *r = [ECCEncResult new];
-    [r parser:strCipher];
+    [r parser:dataCipher];
     
     
     
@@ -391,16 +381,15 @@ static int my_ecdh_hash_function(
 }
 
 
-- (NSString *)ecc_decrypt:(NSString *)strCipher private:(NSString *)prikey{
-    
-    NSData *data = [self _ecc_decrypt:strCipher private:prikey];
+- (NSData *)ecc_decrypt:(NSData *)dataCipher private:(NSString *)prikey{
+    NSData *data = [self _ecc_decrypt:dataCipher private:prikey];
     NSData *data2 = [data gzipInflate];
-    return [[NSString alloc] initWithData:data2 encoding:NSUTF8StringEncoding];;
+    return  data2;
 }
 
+
 + (NSData *)base64DeCode:(NSString *)strBase64{
-    NSData *data = [[NSData alloc] initWithBase64EncodedData:strBase64 options:NSDataBase64DecodingIgnoreUnknownCharacters];
-    
+    NSData *data = [[NSData alloc] initWithBase64EncodedString:strBase64 options:NSDataBase64DecodingIgnoreUnknownCharacters];
     if (data) {
         return data;
     }else{

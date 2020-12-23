@@ -12,14 +12,16 @@
 #import "LTEccTool.h"
 NSData *readStdIn(){
     int c;
-    UInt8 buffer[BUFSIZ * 10] ;
+    UInt8 *buffer = malloc(10244 * 1024 * 10);
     size_t t = 0;
     while ((c = fgetc (stdin)) != EOF){
         buffer[t] = c;
         t ++;
     }
-    
-    return [[NSData alloc] initWithBytes:buffer length:t];
+     
+    NSData *data =[[NSData alloc] initWithBytes:buffer length:t];
+    free(buffer);
+    return data;
 }
 
 void printKey(const void *key,int  size){
@@ -89,28 +91,23 @@ int main(int argc, const char * argv[]) {
         NSData *data2 = [LTEccTool  base64DeCode:priKey];
         printKey(data2.bytes,data2.length);
         
-        printf("priKey:%s",[priKey  UTF8String]);
-        printf("\npubKey:%s",[pubKey  UTF8String]);
+        printf("priKey:%s\n",[priKey  UTF8String]);
+        printf("\npubKey:%s\n",[pubKey  UTF8String]);
     }
     
     else if (argc >= 2  && 0 == strcmp(argv[1], "e")) {
         
         if (strPubKey.length == 0) {
-            fprintf(stderr, "\033[31;47m need pubkey ,use -p pubkey\033[0m");
+            fprintf(stderr, "\033[31;47m need pubkey ,use -p pubkey\033[0m\n");
             return 1;
         }
         NSString *strmsg = dic[@"m"];
+        NSData *dataMsg = [strmsg dataUsingEncoding:NSUTF8StringEncoding];
         if (!strmsg) {
-            NSData *data =  readStdIn();
-            NSString *result = [[LTEccTool shared] ecc_encryptData:data pubkey:strPubKey];
-            printf("\n%s",result.UTF8String);
+            dataMsg =  readStdIn();
         }
-        else{
-            
-            NSString *result = [[LTEccTool shared] ecc_encrypt:strmsg pubkey:strPubKey];
-            printf("\n%s",result.UTF8String);
-        }
-   
+        NSData *data =  [[LTEccTool shared] ecc_encrypt:dataMsg pubkey:strPubKey];
+        fwrite(data.bytes, 1, data.length, stdout);
         
         
     }
@@ -122,16 +119,16 @@ int main(int argc, const char * argv[]) {
             return 1;
         }
         NSString *strmsg = dic[@"m"];
+        
+        NSData *dataMsg = [strmsg dataUsingEncoding:NSUTF8StringEncoding];
         if (!strmsg) {
-            NSData *data =  readStdIn();
-            NSString *str = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
-            NSString *result = [[LTEccTool shared] ecc_decrypt:str private:strSecKey];
-            printf("\n%s",result.UTF8String);
+            dataMsg =  readStdIn();
         }
-        else{
-            NSString *result = [[LTEccTool shared] ecc_decrypt:strmsg private:strSecKey];
-            printf("\n%s",result.UTF8String);
-        }
+        
+        
+        
+        NSData *dat = [[LTEccTool shared] ecc_decrypt:dataMsg private:strSecKey];
+        fwrite(dat.bytes, 1, dat.length, stdout);
         
         
     }
