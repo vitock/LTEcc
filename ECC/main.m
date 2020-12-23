@@ -54,7 +54,28 @@ void printKey(const void *key,int  size){
         ZeroCount += 8-c;
          
     }
+    
     printf("\n0/1 = %d/%d   %f\n\n",ZeroCount,OneCount,OneCount/(float)(OneCount + ZeroCount));
+    
+//    bit map
+//    for (int i = 0 ; i < size; ++ i ) {
+//        if ( i % 3 == 0) {
+//            printf("\n");
+//        }
+//
+//        uint8 p = ((uint8 *)key)[i];
+//        for (int j = 0 ; j < 8; ++ j ) {
+//            if(p & (1 << j)){
+//                printf("o");
+//                OneCount ++;
+//
+//            }else{
+//                printf(".");
+//                ZeroCount ++;
+//            }
+//        }
+//    }
+    printf("\n");
 }
 
 int main(int argc, const char * argv[]) {
@@ -126,9 +147,12 @@ int main(int argc, const char * argv[]) {
         }
         NSString *strmsg = dic[@"m"];
         
-        NSData *dataMsg = [strmsg dataUsingEncoding:NSUTF8StringEncoding];
+        NSData *dataMsg = nil;
         if (!strmsg) {
             dataMsg =  readStdIn();
+        }else {
+            /// message base64
+            dataMsg =  [LTEccTool base64DeCode:strmsg];
         }
         
         
@@ -141,7 +165,7 @@ int main(int argc, const char * argv[]) {
     else {
         NSString *help = @"lwEcc \ng [-prikey/secKey/s prikey]  generate keypair\
         \ne  -pubkey/p pubkey -m msg\
-        \nd  -prikey/s prikey -m ciphermsg\n";
+        \nd  -prikey/s prikey -m base64ciphermsg or binary data from stdin\n";
         fprintf(stdout,"%s", help.UTF8String);
         fprintf(stdout,"\nbuild:%s %s",__DATE__,__TIME__);
         
