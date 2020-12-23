@@ -307,7 +307,11 @@ static int my_ecdh_hash_function(
 }
 
  
-
+- (NSString *) ecc_encryptData:(NSData*)data pubkey:(NSString *)pubkeystring{
+    NSData *dataCompress = [data gzipDeflate];
+    ECCEncResult *r = [self _ecc_encrypt:dataCompress pubkey:pubkeystring];
+    return [r toBaseString];
+}
 - (NSString *) ecc_encrypt:(NSString *)strPlainTxt pubkey:(NSString *)pubkeystring{
     
     NSData *dataOrigin = [strPlainTxt dataUsingEncoding:NSUTF8StringEncoding];
@@ -399,8 +403,10 @@ static int my_ecdh_hash_function(
     if (data) {
         return data;
     }else{
-        [NSException raise:@"base64 Errir" format:@"base64 Error: \n %@",strBase64];
-         return nil;
+        
+        fprintf(stderr, "base64 error:\n\033[31;47m %s\033[0m",strBase64.UTF8String);
+        exit(1);
+        return nil;
     }
     
 }
