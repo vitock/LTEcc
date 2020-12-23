@@ -73,8 +73,8 @@ int main(int argc, const char * argv[]) {
     }
     else {
         NSString *help = @"lwEcc \ng [-prikey/secKey/s prikey]  generate keypair\
-        \ne  -pubkey/secKey/s pubkey -m msg\
-        \nd  -prikey/p prikey -m ciphermsg\n";
+        \ne  -pubkey/p pubkey -m msg\
+        \nd  -prikey/s prikey -m ciphermsg\n";
         fprintf(stdout,"%s", help.UTF8String);
         fprintf(stdout,"\nbuild:%s %s",__DATE__,__TIME__);
         
