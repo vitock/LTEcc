@@ -119,6 +119,7 @@
 				C42B4BB7258CBCF300C0EE5B /* Sources */,
 				C42B4BB8258CBCF300C0EE5B /* Frameworks */,
 				C42B4BB9258CBCF300C0EE5B /* CopyFiles */,
+				C4B65EB825941D6900B1437A /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -159,6 +160,26 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		C4B65EB825941D6900B1437A /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\nexport\n\ncp -f \"${BUILT_PRODUCTS_DIR}/${EXECUTABLE_NAME}\" ~/mybin/ecc\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		C42B4BB7258CBCF300C0EE5B /* Sources */ = {

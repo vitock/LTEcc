@@ -116,8 +116,7 @@ int main(int argc, const char * argv[]) {
         NSString *priKey = dic[@"priKey"];
         NSString *pubKey = dic[@"pubKey"];
         NSData *data2 = [LTEccTool  base64DeCode:priKey];
-        printKey(data2.bytes,data2.length);
-        
+        printKey(data2.bytes,data2.length); 
         printf("priKey:%s",[priKey  UTF8String]);
         printf("\npubKey:%s\n",[pubKey  UTF8String]);
     }
