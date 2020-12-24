@@ -12,5 +12,5 @@
 
 
 
-void randomArt(const  unsigned char *hash, int byteOfHash,char outChar153[153],char *title,char *end);
+void randomArt(const  unsigned char *hash, int byteOfHash,char *title,char *end);
 #endif /* randomart_h */

@@ -32,9 +32,8 @@ void printKey(const void *key,int  size){
     
     unsigned char digest[32];
     CC_SHA256(keycpy, size, digest);
-    char map[153];
     printf("\nECC encrypttion privateKey finggerprint: \n%s\nrandomart:\n",[[LTEccTool shared] bytesToBase64:digest lenOfByte:32].UTF8String);
-    randomArt(digest, 32, map,"[Secp251k1]","[SHA 256]");
+    randomArt(digest, 32,"[Secp251k1]","[SHA 256]");
     
     if (!key) {
         fprintf(stderr, "\033[31;47m No Key \033[0m");
@@ -162,12 +161,30 @@ int main(int argc, const char * argv[]) {
         
         
     }
+    else if (argc >= 2  && 0 == strcmp(argv[1], "r")) {
+        
+        NSString *strmsg = dic[@"m"];
+        
+        NSData *dataMsg = nil;
+        if (!strmsg) {
+            dataMsg =  readStdIn();
+        }else {
+            /// message base64
+            dataMsg =  [strmsg dataUsingEncoding:NSUTF8StringEncoding];
+        }
+        
+        
+        randomArt(dataMsg.bytes , dataMsg.length, NULL , NULL);
+        
+    }
     else {
         NSString *help = @"lwEcc \ng [-prikey/secKey/s prikey]  generate keypair\
         \ne  -pubkey/p pubkey -m msg\
-        \nd  -prikey/s prikey -m base64ciphermsg or binary data from stdin\n";
+        \nd  -prikey/s prikey -m base64ciphermsg or binary data from stdin\
+        \nr  -m msg print random art of msg";
+        
         fprintf(stdout,"%s", help.UTF8String);
-        fprintf(stdout,"\nbuild:%s %s",__DATE__,__TIME__);
+        fprintf(stdout,"\n\nbuild:%s %s",__DATE__,__TIME__);
         
     }
     

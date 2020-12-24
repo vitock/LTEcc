@@ -88,11 +88,14 @@ void goWithValue(int dirction ,int *x ,int *y ,char outChar[153]){
     *y = realY;
 }
 
-void randomArt(const unsigned char *hash, int byteOfHash,char outChar153[153],char *title,char *end){
+void randomArt(const unsigned char *hash, int byteOfHash,char *title,char *end){
     
-    memset(outChar153,0,153);
-    int x = 8;
-    int y = 4;
+    char outChar153[RandomArtWidth * RandomArtHeight];
+    memset(outChar153,0,(RandomArtWidth * RandomArtHeight));
+    int startX = RandomArtWidth/2;
+    int startY  = RandomArtHeight/2;
+    int x = startX;
+    int y = startY;
     
     for (int i  = 0 ; i  < byteOfHash; ++ i ) {
         unsigned char tmp = hash[i];
@@ -114,14 +117,14 @@ void randomArt(const unsigned char *hash, int byteOfHash,char outChar153[153],ch
     }
     
     
-    outChar153[indexXY(8, 4)] = 15;
+    outChar153[indexXY(startX, startY)] = 15;
     outChar153[indexXY(x, y)] = 16;
     
     static const char *Values = " .o+=*BOX@%&#/^SE";
     unsigned long lenMax =  strlen(Values);
     
     int titleLen = (int)strlen(title ? title :"");
-    int _count = 17 - titleLen;
+    int _count = RandomArtWidth - titleLen;
     printf("+");
     if (_count > 0 ) {
         int _count1 = _count / 2;
@@ -149,7 +152,7 @@ void randomArt(const unsigned char *hash, int byteOfHash,char outChar153[153],ch
             if (v >= 0 && v < lenMax) {
                 printf("%c",Values[v]);
             }else{
-                printf("K");
+                printf("■");
             }
             if (x == RandomArtWidth - 1 ) {
                 printf("|");
@@ -160,7 +163,7 @@ void randomArt(const unsigned char *hash, int byteOfHash,char outChar153[153],ch
     }
     
     titleLen = (int)strlen(end ? end : "");
-    _count = 17 - titleLen;
+    _count = RandomArtWidth - titleLen;
     printf("+");
     if (_count > 0 ) {
         int _count1 = _count / 2;
