@@ -14,6 +14,7 @@
 #import "secp256k1_preallocated.h"
 #import "secp256k1_extrakeys.h"
 #import "secp256k1_ecdh.h"
+#import "base64.h"
 
 @interface ECCEncResult:NSObject
 @property (nonatomic, strong)NSData *ephemPubkeyData;
@@ -392,15 +393,20 @@ static int my_ecdh_hash_function(
 
 
 + (NSData *)base64DeCode:(NSString *)strBase64{
-    NSData *data = [[NSData alloc] initWithBase64EncodedString:strBase64 options:NSDataBase64DecodingIgnoreUnknownCharacters];
-    if (data) {
+    
+    if ( strBase64.length > 0 ) {
+        const char *cstrBase64String = [strBase64 UTF8String];
+        unsigned int len  = strBase64.length + 10;
+        unsigned char *pDes = malloc(len);
+        len =  base64Decode(pDes, cstrBase64String);
+        NSData *data = [NSData dataWithBytes:pDes length:len];
+        free(pDes);
         return data;
-    }else{
-        
-        fprintf(stderr, "base64 error:\n\033[31;47m %s\033[0m",strBase64.UTF8String);
-        exit(1);
+    }
+    else {
         return nil;
     }
+   
     
 }
 
