@@ -395,10 +395,12 @@ static int my_ecdh_hash_function(
 + (NSData *)base64DeCode:(NSString *)strBase64{
     
     if ( strBase64.length > 0 ) {
-        const char *cstrBase64String = [strBase64 UTF8String];
+        NSData *dataOrigin = [strBase64 dataUsingEncoding:NSUTF8StringEncoding];
+        NSMutableData *dataFix = [dataOrigin mutableCopy];
+        [dataFix appendBytes:"=====" length:3];
         unsigned int len  = strBase64.length + 10;
         unsigned char *pDes = malloc(len);
-        len =  base64Decode(pDes, cstrBase64String);
+        len =  base64Decode(pDes, dataFix.bytes);
         NSData *data = [NSData dataWithBytes:pDes length:len];
         free(pDes);
         return data;

@@ -26,8 +26,14 @@
 #define RandomArtWidth 17
 #define RandomArtHeight 9
 
+#define RandomArtMapWidth (RandomArtWidth + 3)
+#define RandomArtMapHeight (RandomArtHeight + 2)
 
-#define indexXY(x,y) ((x) + (y) * RandomArtWidth)
+
+/// 实际的xy 变换成, 包含边框的 index
+
+#define indexBorderXY(x,y) ((x) + ((y) * RandomArtMapWidth))
+#define indexXY(x,y) indexBorderXY((x+1),(y + 1))
 
 #ifndef MIN
 #define MIN(a,b)            (((a) < (b)) ? (a) : (b))
@@ -88,10 +94,26 @@ void goWithValue(int dirction ,int *x ,int *y ,char outChar[153]){
     *y = realY;
 }
 
-void randomArt(const unsigned char *hash, int byteOfHash,char *title,char *end){
+void printRandomArt(const unsigned char *hash, int byteOfHash,char *title,char *end){
     
-    char outChar153[RandomArtWidth * RandomArtHeight];
-    memset(outChar153,0,(RandomArtWidth * RandomArtHeight));
+    char outChar[RandomArtMapWidth * RandomArtMapHeight];
+    randomArt(hash, byteOfHash, title, end, outChar);
+    
+    printf("\n");
+    for (int y  = 0 ; y  < RandomArtMapHeight ; y ++ ) {
+        for (int x  = 0 ; x  < RandomArtMapWidth ; x ++ ) {
+            int idx = indexBorderXY(x , y);
+            printf("%C",outChar[idx]);
+        }
+    }
+    
+    
+}
+
+
+void randomArt(const  unsigned char *hash, int byteOfHash,char *title,char *end,char *outChar209){
+    
+    memset(outChar209,0,(RandomArtMapWidth * RandomArtMapHeight));
     int startX = RandomArtWidth/2;
     int startY  = RandomArtHeight/2;
     int x = startX;
@@ -101,90 +123,85 @@ void randomArt(const unsigned char *hash, int byteOfHash,char *title,char *end){
         unsigned char tmp = hash[i];
         // 01110001
         int direction = tmp & 3;
-        goWithValue(direction, &x , &y , outChar153);
+        goWithValue(direction, &x , &y , outChar209);
         
         direction = (tmp & (3 << 2)) >> 2 ;
-        goWithValue(direction, &x , &y , outChar153);
+        goWithValue(direction, &x , &y , outChar209);
         
         direction = (tmp & (3 << 4)) >> 4 ;
-        goWithValue(direction, &x , &y , outChar153);
+        goWithValue(direction, &x , &y , outChar209);
         
         direction = (tmp & (3 << 6)) >> 6 ;
-        goWithValue(direction, &x , &y , outChar153);
+        goWithValue(direction, &x , &y , outChar209);
        
         
         
     }
     
     
-    outChar153[indexXY(startX, startY)] = 15;
-    outChar153[indexXY(x, y)] = 16;
+    outChar209[indexXY(startX, startY)] = 15;
+    outChar209[indexXY(x, y)] = 16;
     
     static const char *Values = " .o+=*BOX@%&#/^SE";
     unsigned long lenMax =  strlen(Values);
     
-    int titleLen = (int)strlen(title ? title :"");
-    int _count = RandomArtWidth - titleLen;
-    printf("+");
-    if (_count > 0 ) {
-        int _count1 = _count / 2;
-        int _count2 = _count - _count1;
-        while (_count1 -- >0) {
-            printf("-");
-        }
-        if(title){
-            printf("%s",title);
-        }
-        
-        while (_count2 -- >0) {
-            printf("-");
-        }
+    
+    outChar209[indexBorderXY(0, 0)] = '+';
+    
+    for (int i = 0; i < RandomArtMapWidth; ++ i) {
+        outChar209[indexBorderXY(i, 0)] = '-';
+        outChar209[indexBorderXY(i ,RandomArtMapHeight - 1)] = '-';
     }
-    printf("+\n");
     
+    for (int i = 0; i < RandomArtMapHeight; ++ i) {
+        outChar209[indexBorderXY(0, i)] = '|';
+        outChar209[indexBorderXY(RandomArtMapWidth - 2, i)] = '|';
+        outChar209[indexBorderXY(RandomArtMapWidth - 1, i)] = '\n';
+    }
     
+    outChar209[indexBorderXY(0,0)] = '+';
+    outChar209[indexBorderXY(RandomArtMapWidth - 2,0)] = '+';
+    
+    outChar209[indexBorderXY(0,RandomArtMapHeight -1)] = '+';
+    outChar209[indexBorderXY(RandomArtMapWidth - 2,RandomArtMapHeight -1)] = '+';
+    
+   
     for (int y = 0 ; y < RandomArtHeight ; ++ y  ) {
         for (int x = 0 ; x  < RandomArtWidth; ++ x  ) {
-            if (x == 0 ) {
-                printf("|");
-            }
-            unsigned char  v = outChar153[indexXY(x , y)];
+            unsigned char  v = outChar209[indexXY(x , y)];
             if (v >= 0 && v < lenMax) {
-                printf("%c",Values[v]);
+                outChar209[indexXY(x , y)] = Values[v];
             }else{
-                printf("■");
-            }
-            if (x == RandomArtWidth - 1 ) {
-                printf("|");
+                outChar209[indexXY(x , y)] = '!';
             }
         }
-        printf("\n");
-        
+    
     }
     
-    titleLen = (int)strlen(end ? end : "");
-    _count = RandomArtWidth - titleLen;
-    printf("+");
-    if (_count > 0 ) {
-        int _count1 = _count / 2;
-        int _count2 = _count - _count1;
-        while (_count1 -- >0) {
-            printf("-");
+    int titleLen = (int)strlen(title ? title :"");
+    if (titleLen) {
+        int titleStart  = (RandomArtWidth - titleLen)/2;
+        if (titleStart < 0) {
+            titleStart =  0;
         }
-        if(end)
-        {
-            printf("%s",end);
-        }
-        while (_count2 -- >0) {
-            printf("-");
+        for (int  i = titleStart,j = 0 ;  i < RandomArtWidth && j  < titleLen ; ++ j ,++ i ) {
+            outChar209[indexXY(i , -1)] = title[j];
         }
     }
-    printf("+\n");
-    printf("\n");
     
+    int endLen = (int)strlen(end ? end :"");
+    if (endLen) {
+        int endLenStart  = (RandomArtWidth - endLen)/2;
+        if (endLenStart < 0) {
+            endLenStart =  0;
+        }
+        for (int  i = endLenStart,j = 0 ;  i < RandomArtWidth && j  < endLen ; ++ j ,++ i ) {
+            outChar209[indexXY(i , RandomArtHeight )] = end[j];
+        }
+    }
     
+   
 }
-
 
 
 
