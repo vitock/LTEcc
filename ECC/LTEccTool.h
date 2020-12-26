@@ -23,6 +23,10 @@ NS_ASSUME_NONNULL_BEGIN
 + (NSData *)base64DeCode:(NSString *)strBase64;
 
 - (NSString *)bytesToBase64:(void *)byte lenOfByte:(size_t )len;
+
+
+
+- (void)test;
 @end
 
 NS_ASSUME_NONNULL_END

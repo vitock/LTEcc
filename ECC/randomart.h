@@ -17,6 +17,10 @@ void printRandomArt(const  unsigned char *hash, int byteOfHash,char *title,char 
 
 /// 注意,上下左右有划线
 /// 生成 outchar (17 + 2) * (9 + 2)
-void randomArt(const  unsigned char *hash, int byteOfHash,char *title,char *end,char *outChar209);
+void randomArt(const  unsigned char *hash, int byteOfHash,char *title,char *end,unsigned char *outChar220);
 
+void decodeRandomArt( unsigned char *hash, int *byteOfHash,unsigned char *mapOfCar);
+
+
+void test(void);
 #endif /* randomart_h */

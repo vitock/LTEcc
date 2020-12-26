@@ -412,5 +412,27 @@ static int my_ecdh_hash_function(
     
 }
 
+
+
+NSString *MyLogFunc(NSString *fmt,...){
+    
+
+    va_list ap;
+    va_start(ap, fmt);
+    NSString *s = [[NSString alloc] initWithFormat:fmt  arguments:ap];
+    va_end(ap);
+    return s;
+    
+    
+}
+
+- (void)test{
+    NSLog(@"%@",MyLogFunc(@"%d,%s,%@ " ,1,"CharString",@"Obj"));
+    
+    NSLog(@"%@",MyLogFunc(@"%d,%s,%@ " ,2,"CharStrin3",@"Obj"));
+}
+
  
 @end
+
+

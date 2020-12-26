@@ -108,6 +108,14 @@ int main(int argc, const char * argv[]) {
     if (!strPubKey) {
         strPubKey = dic[@"pubKey"];
     }
+    
+    {
+        test();
+        
+        [[LTEccTool shared] test];
+        
+    }
+ 
 
     
     if (argc >= 2  && 0 == strcmp(argv[1], "g")) {
