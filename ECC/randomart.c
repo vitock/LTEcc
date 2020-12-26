@@ -359,7 +359,6 @@ void decreaseNode(Node *node,uint8_t *map){
     }
 }
 void insertChild(char *mapOfchar, Node *nodeParent,Node *child){
-    decreaseNode(child, mapOfchar);
     debugNode(nodeParent,child,mapOfchar,"insert",1,5);
 //    printf("\n > %c",debugchar[indexXY(child->x, child->y)]);
   
@@ -718,6 +717,7 @@ void decodeRandomArt(uint8_t *hash, int *byteOfHash,unsigned char *mapOfCar){
         }
         
         push(stack, node);
+        decreaseNode(node,mapOfCar);
         searchNode(mapOfCar,nodeMap,startNode,node,sumOfdotvalue,stack,eX,eY,sX,sY);
          
         /// 已经是叶子节点了
