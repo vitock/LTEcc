@@ -244,7 +244,7 @@ void debugNode(Node *pre,Node *current,char *mapChar, char *ex,int showchart,int
         static int z = 0;
         
         printf("\n>%02d %*c %c (%d,%d) %d  %s",z++,(left),' ',c,current->x,current->y,mapChar[idx],ex);
-        if(showchart && 0){
+        if(showchart && 0 ){
             printf("\n");
             for (int y  = 0 ; y  < RandomArtMapHeight ; y ++ ) {
                 for (int x  = 0 ; x  < RandomArtMapWidth ; x ++ ) {
@@ -261,7 +261,13 @@ void debugNode(Node *pre,Node *current,char *mapChar, char *ex,int showchart,int
                     if (v > 0 && v < 18) {
                         printf("%x",v);
                     }else{
-                        printf(" ");
+                        if(x == current->x + 1 && y == current->y + 1){
+                            printf(".");
+                        }
+                        else{
+                            printf(" ");
+                        }
+                        
                     }
                     
                 }
@@ -709,7 +715,7 @@ void decodeRandomArt(uint8_t *hash, int *byteOfHash,unsigned char *mapOfCar){
     
     Node *node = startNode;
     
-    int DEBUGMAXC = 1100;
+    int DEBUGMAXC = 200;
     do {
         if (DEBUGMAXC -- < 0) {
             printf("EEEEEEEEError\n");
@@ -722,37 +728,60 @@ void decodeRandomArt(uint8_t *hash, int *byteOfHash,unsigned char *mapOfCar){
          
         /// 已经是叶子节点了
         if (node->children == NULL) {
-            
+            debugNode(NULL,node, mapOfCar,"Leave",1,10);
             /// 所有节点都遍历 成功
             if( node->x == eX && node->y == eY && checkStackIsFinishState(stack,mapOfCar,startNode ) ){
                 finish = 1;
     
             }
             else {
-                pop(stack);
-                debugNode(NULL,node, mapOfCar,"pop",1,6);
-                increaseNode(node,mapOfCar);
-                ///
-                Node *father = getTop(stack);
-                while(father){
+//                pop(stack);
+//                debugNode(NULL,node, mapOfCar,"pop",1,6);
+//                increaseNode(node,mapOfCar);
+//                ///
+                Node *tmpNode =  node; getTop(stack);
+                /// 此时还没pop
+                while(tmpNode ){
                     // 有其他子孙,
-                   if (father && father->children && father->children->next) {
-                       NodeList *childToRemove = father->children;
-                       father->children = childToRemove->next;
+                    
+                    if (tmpNode->children && tmpNode->children->next) {
+                        NodeList *childToRemove = tmpNode->children;
+                        tmpNode->children = childToRemove->next;
+                        mFree(childToRemove);
+                        node = tmpNode->children->node;
+                        
+                       
+                        
+                        break;;
+                    }
+                    
+                    Node *grandFather = NULL;
+                    int grandFatherIndex = stack->current -1;
+                    if (grandFatherIndex >=0 ) {
+                        grandFather = stack->stack[grandFatherIndex];
+                    }
+                     
+                   if (grandFather && grandFather->children && grandFather->children->next) {
+                       NodeList *childToRemove = grandFather->children;
+                       grandFather->children = childToRemove->next;
                        mFree(childToRemove);
-                       node = father->children->node;
+                       node = grandFather->children->node;
+                       
+                       
+                       tmpNode = pop(stack);
+                       increaseNode(tmpNode, mapOfCar);
                        break;
                    }
                    /// 一袋单传
                    else {
-                       father = pop(stack);
-                       if (father) {
-                           increaseNode(father,mapOfCar);
-                           debugNode(NULL,node, mapOfCar,"pop",1,6);
+                       tmpNode = pop(stack);
+                       if (tmpNode) {
+                           increaseNode(tmpNode,mapOfCar);
+                           debugNode(NULL,tmpNode, mapOfCar,"pop",1,6);
                        }
-                       else{
-                           break;
-                       }
+                       
+                       
+                       tmpNode = getTop(stack);
     
                    }
                 }
@@ -820,20 +849,20 @@ void test1(){
 void test(){
     
     
-    if(0)
+    if(1)
     {
-        uint8_t t = 53;
-        printRandomArt(&t , 1, NULL, NULL);
+        uint8_t t[] = { 89, 5};
+        printRandomArt(t , 2, "895", "895");
         
-        t = 89;
-        printRandomArt(&t , 1, NULL, NULL);
+        uint8_t t2[] = { 89 ,85};
+        printRandomArt(t2 , 2, "8985", "8985");
         
-        return;;
+//        return;;
     }
     
     
-    setChartLog(1);
-    int C = 111;
+    setChartLog(0);
+    int C = 400;
     
     int v = 0;
     int unfitCount = 0;
@@ -841,11 +870,12 @@ void test(){
     
     
     while (C -- > 0) {
-        const int size = 1;
+        const int size = 2;
         unsigned char a[size];
         arc4random_buf(a , size);
         
-        a[0] =  116;
+        a[0] =  89;
+        a[1] =  85;
         
         
         
@@ -908,7 +938,7 @@ void test(){
     }
     
     printf("\n unfitCount :%d\n",unfitCount);
-    while (unfitCount >= 0 ) {
+    while (unfitCount > 0 ) {
         printf(" %d,",unfit[unfitCount]);
         
         unfitCount -= 1;
