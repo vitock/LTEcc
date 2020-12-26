@@ -244,7 +244,7 @@ void debugNode(Node *pre,Node *current,char *mapChar, char *ex,int showchart,int
         static int z = 0;
         
         printf("\n>%02d %*c %c (%d,%d) %d  %s",z++,(left),' ',c,current->x,current->y,mapChar[idx],ex);
-        if(showchart && 0 ){
+        if(showchart  ){
             printf("\n");
             for (int y  = 0 ; y  < RandomArtMapHeight ; y ++ ) {
                 for (int x  = 0 ; x  < RandomArtMapWidth ; x ++ ) {
@@ -254,25 +254,25 @@ void debugNode(Node *pre,Node *current,char *mapChar, char *ex,int showchart,int
             }
             printf("\n");
             
-            for (int y  = 0 ; y  < RandomArtMapHeight ; y ++ ) {
-                for (int x  = 0 ; x  < RandomArtMapWidth ; x ++ ) {
-                    int idx = indexBorderXY(x , y);
-                    int v = mapChar[idx];
-                    if (v > 0 && v < 18) {
-                        printf("%x",v);
-                    }else{
-                        if(x == current->x + 1 && y == current->y + 1){
-                            printf(".");
-                        }
-                        else{
-                            printf(" ");
-                        }
-                        
-                    }
-                    
-                }
-                printf("\n");
-            }
+//            for (int y  = 0 ; y  < RandomArtMapHeight ; y ++ ) {
+//                for (int x  = 0 ; x  < RandomArtMapWidth ; x ++ ) {
+//                    int idx = indexBorderXY(x , y);
+//                    int v = mapChar[idx];
+//                    if (v > 0 && v < 18) {
+//                        printf("%x",v);
+//                    }else{
+//                        if(x == current->x + 1 && y == current->y + 1){
+//                            printf(".");
+//                        }
+//                        else{
+//                            printf(" ");
+//                        }
+//
+//                    }
+//
+//                }
+//                printf("\n");
+//            }
         }
        
           
@@ -545,10 +545,10 @@ int8_t getNodeDirection(Node *parent,Node *child){
     //撞墙判断
     if(dy == 0){
         if (child->y == 0) {
-            dx = -1;
+            dy = -1;
         }
         else{
-            dx = 1;
+            dy = 1;
         }
     }
     /// 0 3
@@ -806,8 +806,11 @@ void decodeRandomArt(uint8_t *hash, int *byteOfHash,unsigned char *mapOfCar){
             
             Node *child = startNode->children->node;
             
+            debugNode(NULL, child, mapOfCar, "", 0, 5);
             int8_t dir =  getNodeDirection(startNode, child);
-            printf("  %d",dir);
+            
+            
+            printf("  direc:%d",dir);
             
             direction[count] = dir;
             startNode =child;
@@ -861,7 +864,7 @@ void test(){
     }
     
     
-    setChartLog(0);
+    setChartLog(1);
     int C = 400;
     
     int v = 0;
