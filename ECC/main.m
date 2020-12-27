@@ -109,12 +109,12 @@ int main(int argc, const char * argv[]) {
         strPubKey = dic[@"pubKey"];
     }
     
-    {
-        test();
+//    {
+//        test();
+//
+//        [[LTEccTool shared] test];
         
-        [[LTEccTool shared] test];
-        
-    }
+//    }
  
 
     
