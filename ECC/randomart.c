@@ -244,7 +244,7 @@ void debugNode(Node *pre,Node *current,char *mapChar, char *ex,int showchart,int
         static int z = 0;
         
         printf("\n>%02d %*c %c (%d,%d) %d  %s",z++,(left),' ',c,current->x,current->y,mapChar[idx],ex);
-        if(showchart  ){
+        if(showchart  && 0){
             printf("\n");
             for (int y  = 0 ; y  < RandomArtMapHeight ; y ++ ) {
                 for (int x  = 0 ; x  < RandomArtMapWidth ; x ++ ) {
@@ -473,7 +473,7 @@ void  push(NodeStack *stack,Node *p){
     stack->current = c;
     
 }
-int  checkStackIsFinishState(NodeStack *stack,unsigned char *map,Node *topNode){
+int  checkStackIsFinishState(NodeStack *stack,unsigned char *map,Node *topNode,int endx,int endy,int sx,int sy){
     
     int c = stack->current;
     
@@ -519,8 +519,21 @@ int  checkStackIsFinishState(NodeStack *stack,unsigned char *map,Node *topNode){
         }
         
         
-        return  depath % 4 == 1;
+        if (depath % 4 != 1) {
+            return 0;
+        }
         
+    }
+    
+    
+    for (int i = 0; i < RandomArtWidth; ++i ) {
+        for (int j = 0 ; j < RandomArtHeight; ++ j ) {
+            if (!(i == sx && j == sy )  && ! (i == endx && j == endy )) {
+                if(map[indexXY(i, j)] > 0){
+                    return 0;
+                }
+            }
+        }
     }
     
     
@@ -534,11 +547,11 @@ int8_t getNodeDirection(Node *parent,Node *child){
     
     //撞墙判断
     if(dx == 0){
-        if (child->x > 0) {
-            dx = 1;
+        if (child->x == 0) {
+            dx = -1;
         }
         else{
-            dx = -1;
+            dx = 1;
         }
     }
     
@@ -572,6 +585,8 @@ int  searchNode(uint8_t *mapOfCar,Node *topE, Node **nodeMap,Node *node,int valu
             int x0 = x-1;
             int y0 = y-1;
             valify(x0, y0);
+            
+            
             int v = mapOfCar[indexXY(x0, y0)];
             if(v!= 0){
                 Node *lt =   allocFromMap(nodeMap,x0,y0,v);
@@ -722,6 +737,13 @@ void decodeRandomArt(uint8_t *hash, int *byteOfHash,unsigned char *mapOfCar){
             break;
         }
         
+        if( node->x == eX && node->y == eY && checkStackIsFinishState(stack,mapOfCar,startNode ,eX,eY,sX,sY) ){
+            finish = 1;
+            break;
+
+        }
+        
+        
         push(stack, node);
         decreaseNode(node,mapOfCar);
         searchNode(mapOfCar,nodeMap,startNode,node,sumOfdotvalue,stack,eX,eY,sX,sY);
@@ -730,7 +752,7 @@ void decodeRandomArt(uint8_t *hash, int *byteOfHash,unsigned char *mapOfCar){
         if (node->children == NULL) {
             debugNode(NULL,node, mapOfCar,"Leave",1,10);
             /// 所有节点都遍历 成功
-            if( node->x == eX && node->y == eY && checkStackIsFinishState(stack,mapOfCar,startNode ) ){
+            if( node->x == eX && node->y == eY && checkStackIsFinishState(stack,mapOfCar,startNode ,eX,eY,sX,sY) ){
                 finish = 1;
     
             }
@@ -790,6 +812,10 @@ void decodeRandomArt(uint8_t *hash, int *byteOfHash,unsigned char *mapOfCar){
         }
         else {
             node = node->children->node;
+        }
+        
+        if (node == NULL) {
+            printf("333");
         }
         
     } while (!finish && node);
@@ -852,13 +878,13 @@ void test1(){
 void test(){
     
     
-    if(1)
+    if(0)
     {
-        uint8_t t[] = { 89, 5};
-        printRandomArt(t , 2, "895", "895");
+        uint8_t t[] = { 32 ,32};
+        printRandomArt(t , 2, "139", "139");
         
-        uint8_t t2[] = { 89 ,85};
-        printRandomArt(t2 , 2, "8985", "8985");
+        uint8_t t2[] = {12, 69};
+        printRandomArt(t2 , 2, "182", "182");
         
 //        return;;
     }
@@ -876,9 +902,9 @@ void test(){
         const int size = 2;
         unsigned char a[size];
         arc4random_buf(a , size);
-        
-        a[0] =  89;
-        a[1] =  85;
+//
+        a[0] =  32;
+        a[1] =  32;
         
         
         
@@ -926,10 +952,7 @@ void test(){
                 printf(" %0d",a[i]);
             }
             printf("\n-----------NotFit-----------------org %d---result  %d---------\n",a[0],hash[0]);
-            
-   
-            
-            
+             
             unfit[unfitCount] = a[0];
             unfitCount ++ ;
             break;
