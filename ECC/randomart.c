@@ -730,7 +730,7 @@ void decodeRandomArt(uint8_t *hash, int *byteOfHash,unsigned char *mapOfCar){
     
     Node *node = startNode;
     
-    int DEBUGMAXC = 200;
+    int DEBUGMAXC = 112010;
     do {
         if (DEBUGMAXC -- < 0) {
             printf("EEEEEEEEError\n");
@@ -878,38 +878,41 @@ void test1(){
 void test(){
     
     
-    if(0)
+    if(1)
     {
-        uint8_t t[] = { 32 ,32};
-        printRandomArt(t , 2, "139", "139");
+        uint8_t t[] = {   0, 184, 161, 182};
+        printRandomArt(t , sizeof(t)/sizeof(t[0]), "ori", "ori");
         
-        uint8_t t2[] = {12, 69};
-        printRandomArt(t2 , 2, "182", "182");
+        uint8_t t2[] = {  0, 56, 139, 182};
+        printRandomArt(t2 , sizeof(t2)/sizeof(t2[0]), "result", "result");
         
 //        return;;
     }
     
     
-    setChartLog(1);
+    setChartLog(0);
     int C = 400;
     
     int v = 0;
     int unfitCount = 0;
+    int fitCount = 0;
+    int notFitBugSamechart = 0;
     uint8_t unfit[200] ;
     
     
     while (C -- > 0) {
-        const int size = 2;
+        const int size = 4;
         unsigned char a[size];
         arc4random_buf(a , size);
-//
-        a[0] =  32;
-        a[1] =  32;
+//ih09m7umi8i,u8j,h7mgt7
+//        a[0] =  14;
+//        a[1] =  37;
         
-        
-        
+        char p[size] = {   0, 184, 161, 182};
+        memcpy(a , p , size);
+         
         uint8_t map[220];
-        printRandomArt(a , size, NULL , NULL);
+        printRandomArt(a , size, "0000" , NULL);
  
         randomArt(a , size , NULL , NULL, map);
         
@@ -923,13 +926,13 @@ void test(){
         //00 10 01 10
         
         
-        if(0 != memcmp(a , hash, size)){
+        if(len != size || 0 != memcmp(a , hash, size) ){
             
             
             char *map0_220[220];
             char *map1_220[220];
             
-            randomArt(hash, size, NULL , NULL , map0_220);
+            randomArt(hash, len, NULL , NULL , map0_220);
             randomArt(a, size, NULL , NULL , map1_220);
             
             if(0 == memcmp(map1_220 , map0_220, 220)){
@@ -938,13 +941,25 @@ void test(){
                 printRandomArt(a , size, "a", "a");
                 
                 printRandomArt(hash , size, "b", "b");
-                continue;;
+                
+                notFitBugSamechart ++;
+                
+                printf("\n result\n");
+                for (int i = 0 ; i < len ; ++ i ) {
+                    printf(" %d,",hash[i]);
+                }
+                printf("\n origin\n");
+                for (int i = 0 ; i < size ; ++ i ) {
+                    printf(" %d,",a[i]);
+                }
+                break;
+                continue;
             }
             
             
             
             printf("\n result\n");
-            for (int i = 0 ; i < size ; ++ i ) {
+            for (int i = 0 ; i < len ; ++ i ) {
                 printf(" %d,",hash[i]);
             }
             printf("\n origin\n");
@@ -958,12 +973,12 @@ void test(){
             break;
         }
         else {
-         
+            fitCount ++;
         }
         
     }
     
-    printf("\n unfitCount :%d\n",unfitCount);
+    printf("\n unfitCount :%d fit:%d  samechart: %d\n",unfitCount,fitCount,notFitBugSamechart);
     while (unfitCount > 0 ) {
         printf(" %d,",unfit[unfitCount]);
         
