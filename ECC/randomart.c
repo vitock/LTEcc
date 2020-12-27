@@ -128,6 +128,12 @@ void randomArt(const  unsigned char *hash, int byteOfHash,char *title,char *end,
     }
     
     
+    
+    int startRealValue =  outChar209[indexXY(startX, startY)];
+    int endRealValue =  outChar209[indexXY(x, y)];
+    
+    
+    
     outChar209[indexXY(startX, startY)] = 15;
     outChar209[indexXY(x, y)] = 16;
     
@@ -135,7 +141,6 @@ void randomArt(const  unsigned char *hash, int byteOfHash,char *title,char *end,
     unsigned long lenMax =  strlen(Values);
     
     
-    outChar209[indexBorderXY(0, 0)] = '+';
     
     for (int i = 0; i < RandomArtMapWidth; ++ i) {
         outChar209[indexBorderXY(i, 0)] = '-';
@@ -154,6 +159,15 @@ void randomArt(const  unsigned char *hash, int byteOfHash,char *title,char *end,
     
     outChar209[indexBorderXY(0,RandomArtMapHeight -1)] = '+';
     outChar209[indexBorderXY(RandomArtMapWidth - 2,RandomArtMapHeight -1)] = '+';
+    
+    outChar209[indexBorderXY(0, 0)] = startRealValue + 'a' +  1;
+    outChar209[indexBorderXY(0, 1)] = startX + 'a';
+    outChar209[indexBorderXY(1, 0)] = startY + 'a';
+    
+    outChar209[indexBorderXY(RandomArtMapWidth - 2,RandomArtMapHeight -1)] = endRealValue + 'a';
+    outChar209[indexBorderXY(RandomArtMapWidth - 3, RandomArtMapHeight -1)] = x + 'a';
+    outChar209[indexBorderXY(RandomArtMapWidth - 2, RandomArtMapHeight -2)] = y + 'a';
+    
     
    
     for (int y = 0 ; y < RandomArtHeight ; ++ y  ) {
@@ -675,11 +689,13 @@ int  searchNode(uint8_t *mapOfCar,Node *topE, Node **nodeMap,Node *node,int valu
 void decodeRandomArt(uint8_t *hash, int *byteOfHash,unsigned char *mapOfCar){
     
     memcpy(debugchar, mapOfCar, 220);
+    int sX = -1,sY = -1;
+    int eX = -1, eY = -1;
     
-    int sX = -1,sY = -1; ;
+     
     int sumOfdotvalue = 0;
     
-    int eX = -1, eY = -1;
+    
     for (int x  = 0; x < RandomArtWidth ; ++ x  ) {
         for (int y = 0 ; y < RandomArtHeight; ++ y ) {
             
@@ -710,6 +726,30 @@ void decodeRandomArt(uint8_t *hash, int *byteOfHash,unsigned char *mapOfCar){
         sY = eY;
     }
     
+    
+    
+    
+    sX =  RandomArtWidth/2;
+    sY = RandomArtHeight/2;
+    
+    /// 真实的 开始S结束E 值, 从左上 右下角获取
+    uint8_t sValue = mapOfCar[indexBorderXY(0, 0)];
+    uint8_t eValue = mapOfCar[indexBorderXY(RandomArtMapWidth - 2,RandomArtMapHeight -1)];
+    
+    uint8_t eX2 = mapOfCar[indexBorderXY(RandomArtMapWidth - 3, RandomArtMapHeight -1)] - 'a';
+    uint8_t eY2 = mapOfCar[indexBorderXY(RandomArtMapWidth - 2, RandomArtMapHeight -2)] - 'a';
+    
+    if(eX2 >= 0 && eX2 < RandomArtWidth && eY2 >=0 && eY2 < RandomArtHeight){
+        eX = eX2;
+        eY = eY2;
+        mapOfCar[indexXY(eX, eY)] = eValue - 'a';
+    }
+     
+    if (sValue >= 'a' && eValue >= 'a') {
+        mapOfCar[indexXY(sX, sY)] = sValue - 'a';
+    }
+    
+     
     /// 去掉开始和结束强制的 15 和 16;
      
     Node *startNode = mMalloc(sizeof(Node));
@@ -730,10 +770,10 @@ void decodeRandomArt(uint8_t *hash, int *byteOfHash,unsigned char *mapOfCar){
     
     Node *node = startNode;
     
-    int DEBUGMAXC = 112010;
+    int DEBUGMAXC = 90000;
     do {
-        if (DEBUGMAXC -- < 0) {
-            printf("EEEEEEEEError\n");
+        if (DEBUGMAXC -- < 0 ) {
+            fprintf(stderr, "too much ");
             break;
         }
         
@@ -792,6 +832,7 @@ void decodeRandomArt(uint8_t *hash, int *byteOfHash,unsigned char *mapOfCar){
                        
                        tmpNode = pop(stack);
                        increaseNode(tmpNode, mapOfCar);
+                       mFree(tmpNode);
                        break;
                    }
                    /// 一袋单传
@@ -800,6 +841,7 @@ void decodeRandomArt(uint8_t *hash, int *byteOfHash,unsigned char *mapOfCar){
                        if (tmpNode) {
                            increaseNode(tmpNode,mapOfCar);
                            debugNode(NULL,tmpNode, mapOfCar,"pop",1,6);
+                           mFree(tmpNode);
                        }
                        
                        
@@ -880,18 +922,19 @@ void test(){
     
     if(1)
     {
-        uint8_t t[] = {   0, 184, 161, 182};
-        printRandomArt(t , sizeof(t)/sizeof(t[0]), "ori", "ori");
+        int size = 1;
+        uint8_t t[] = { 60, 236, 127, 130, 221, 193, 64, 161, 208, 96};
+        printRandomArt(t , size, "ori", "ori");
         
-        uint8_t t2[] = {  0, 56, 139, 182};
-        printRandomArt(t2 , sizeof(t2)/sizeof(t2[0]), "result", "result");
+        uint8_t t2[] = {  195, 230, 63, 216, 109, 193, 64, 161, 96, 13};
+        printRandomArt(t2 , size, "result", "result");
         
 //        return;;
     }
     
     
     setChartLog(0);
-    int C = 400;
+    int C = 111;
     
     int v = 0;
     int unfitCount = 0;
@@ -901,15 +944,16 @@ void test(){
     
     
     while (C -- > 0) {
-        const int size = 4;
-        unsigned char a[size];
+        const int size = 15;
+        unsigned char a[size] ;"I Love You";
+        
         arc4random_buf(a , size);
 //ih09m7umi8i,u8j,h7mgt7
-//        a[0] =  14;
+//        a[0] =  243 ;//v ++;
 //        a[1] =  37;
         
-        char p[size] = {   0, 184, 161, 182};
-        memcpy(a , p , size);
+//        char p[size] = {   0, 184, 161, 182};
+//        memcpy(a , p , size);
          
         uint8_t map[220];
         printRandomArt(a , size, "0000" , NULL);
@@ -952,7 +996,7 @@ void test(){
                 for (int i = 0 ; i < size ; ++ i ) {
                     printf(" %d,",a[i]);
                 }
-                break;
+                
                 continue;
             }
             
