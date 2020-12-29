@@ -42,6 +42,33 @@ realX = MIN(RandomArtWidth - 1,realX);\
 realY = MAX(0,realY);\
 realY = MIN(RandomArtHeight - 1,realY);\
 }
+static char debugchar[220];
+typedef struct _NodeList {
+    struct _Node *node;
+    struct _NodeList *next;
+} NodeList;
+typedef  struct _Node{
+    int allDotCount;
+    struct _Node *parrent;
+    NodeList *children;
+    int x;
+    int y;
+    int count;
+    
+    /**
+     * 和生成相同, 子到父的方向  0 lt 1 rt 3 ld 4 rd
+     */
+    int dicretion;
+    
+    int isFinal;
+    
+    int isChildAdd;
+    
+    
+    
+    int isReuse;
+} Node;
+
 void *mMalloc(size_t t){
     void *p = malloc(t);
     memset(p , 0 , t);
@@ -50,6 +77,7 @@ void *mMalloc(size_t t){
 void mFree(void * p){
     free(p);
 }
+
 void goWithValue(int dirction ,int *x ,int *y ,char outChar[153]){
     int realX = *x ;
     int realY = *y;
@@ -206,29 +234,7 @@ void randomArt(const  unsigned char *hash, int byteOfHash,char *title,char *end,
     
    
 }
-static char debugchar[220];
-typedef struct _NodeList {
-    struct _Node *node;
-    struct _NodeList *next;
-} NodeList;
-typedef  struct _Node{
-    int allDotCount;
-    struct _Node *parrent;
-    NodeList *children;
-    int x;
-    int y;
-    int count;
-    
-    /**
-     * 和生成相同, 子到父的方向  0 lt 1 rt 3 ld 4 rd
-     */
-    int dicretion;
-    
-    int isFinal;
-    
-    int isChildAdd;
-    
-} Node;
+
 static int g_showLog = 0;
 void setChartLog(int r  ){
     g_showLog = r;
@@ -434,22 +440,29 @@ void insertChild(char *mapOfchar, Node *nodeParent,Node *child){
 }
 Node * allocFromMap(Node **nodeMap,int x, int y,int v){
     int index = x + RandomArtWidth * y;
-    Node *p = NULL;//nodeMap[index];
+    Node *p = NULL ;nodeMap[index];
     if (p == NULL )
     {
         p = mMalloc(sizeof(Node));
         p->x = x;
         p->y = y;
-        
+        p->allDotCount = 1;
         p->children = NULL;
-//        nodeMap[index] = p;
+        p->count = v;
+        p->isReuse = 0;
+        nodeMap[index] = p;
+        
+        
+    }
+    else{
+        
+        p->isReuse = 1;
     }
     
-    /// 已经用过的,孩子顺序已经排咧好了,不需要了,这里用新的
-    p->count = v;
+    
     return  p;
 }
-#define MaxStackSize 1000
+#define MaxStackSize 10000
 #define MaxResultSize (MaxStackSize << 2)
 typedef struct _NodeStack{
     Node *stack[MaxStackSize];
@@ -770,12 +783,12 @@ void decodeRandomArt(uint8_t *hash, int *byteOfHash,unsigned char *mapOfCar){
     
     Node *node = startNode;
     
-    int DEBUGMAXC = 90000;
+//    int DEBUGMAXC = 1199000;
     do {
-        if (DEBUGMAXC -- < 0 ) {
-            fprintf(stderr, "too much ");
-            break;
-        }
+//        if (DEBUGMAXC -- < 0 ) {
+//            fprintf(stderr, "too much ");
+//            break;
+//        }
         
         if( node->x == eX && node->y == eY && checkStackIsFinishState(stack,mapOfCar,startNode ,eX,eY,sX,sY) ){
             finish = 1;
@@ -786,7 +799,7 @@ void decodeRandomArt(uint8_t *hash, int *byteOfHash,unsigned char *mapOfCar){
         
         push(stack, node);
         decreaseNode(node,mapOfCar);
-        searchNode(mapOfCar,nodeMap,startNode,node,sumOfdotvalue,stack,eX,eY,sX,sY);
+        searchNode(mapOfCar,startNode,nodeMap,node,sumOfdotvalue,stack,eX,eY,sX,sY);
          
         /// 已经是叶子节点了
         if (node->children == NULL) {
@@ -801,7 +814,7 @@ void decodeRandomArt(uint8_t *hash, int *byteOfHash,unsigned char *mapOfCar){
 //                debugNode(NULL,node, mapOfCar,"pop",1,6);
 //                increaseNode(node,mapOfCar);
 //                ///
-                Node *tmpNode =  node; getTop(stack);
+                Node *tmpNode =  node;
                 /// 此时还没pop
                 while(tmpNode ){
                     // 有其他子孙,
@@ -811,12 +824,22 @@ void decodeRandomArt(uint8_t *hash, int *byteOfHash,unsigned char *mapOfCar){
                         tmpNode->children = childToRemove->next;
                         mFree(childToRemove);
                         node = tmpNode->children->node;
-                        
-                       
-                        
+                         
                         break;;
                     }
+                    else{
+                        tmpNode = pop(stack);
+                        if (tmpNode) {
+                            increaseNode(tmpNode,mapOfCar);
+                            debugNode(NULL,tmpNode, mapOfCar,"pop",1,6);
+                            mFree(tmpNode->children);
+                            mFree(tmpNode);
+                        }
+                        tmpNode = getTop(stack);
+                        continue;
+                    }
                     
+               
                     Node *grandFather = NULL;
                     int grandFatherIndex = stack->current -1;
                     if (grandFatherIndex >=0 ) {
@@ -827,6 +850,7 @@ void decodeRandomArt(uint8_t *hash, int *byteOfHash,unsigned char *mapOfCar){
                        NodeList *childToRemove = grandFather->children;
                        grandFather->children = childToRemove->next;
                        mFree(childToRemove);
+                       
                        node = grandFather->children->node;
                        
                        
@@ -934,7 +958,7 @@ void test(){
     
     
     setChartLog(0);
-    int C = 111;
+    int C = 1133;
     
     int v = 0;
     int unfitCount = 0;
@@ -944,7 +968,7 @@ void test(){
     
     
     while (C -- > 0) {
-        const int size = 15;
+        const int size = 8;
         unsigned char a[size] ;"I Love You";
         
         arc4random_buf(a , size);
@@ -952,7 +976,7 @@ void test(){
 //        a[0] =  243 ;//v ++;
 //        a[1] =  37;
         
-//        char p[size] = {   0, 184, 161, 182};
+//        char p[size] = {   20, 251 ,181, 133 ,196, 252, 181 ,44};
 //        memcpy(a , p , size);
          
         uint8_t map[220];
