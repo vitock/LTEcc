@@ -598,7 +598,21 @@ int8_t getNodeDirection(Node *parent,Node *child){
         return dy > 0 ? 3 : 1;
     }
 }
-///
+int  checkIsAscii(NodeStack *stack){
+    int c = stack->current;
+    /// 4个已经极其,看看是不是ascii
+    if (c % 4 == 3) {
+        uint8_t dirhight = stack->stack[c]->dicretion;
+        uint8_t dirT = stack->stack[c-1]->dicretion;
+        uint8_t dirS = stack->stack[c-2]->dicretion;
+        uint8_t dirlow = stack->stack[c-3]->dicretion;
+        uint8_t dir = dirlow | (dirS << 2) | (dirT << 4) | (dirhight << 6);
+        return dir >= 32 && dir <= 126;
+        
+        
+    }
+    return 1;
+}
 int  searchNode(uint8_t *mapOfCar,Node *topE, Node **nodeMap,Node *node,int valueSum,NodeStack*stack ,int eX,int eY,int sX,int sY){
     
     node->count = mapOfCar[indexXY(node->x, node->y)];
@@ -838,40 +852,6 @@ void decodeRandomArt(uint8_t *hash, int *byteOfHash,unsigned char *mapOfCar){
                         tmpNode = getTop(stack);
                         continue;
                     }
-                    
-               
-                    Node *grandFather = NULL;
-                    int grandFatherIndex = stack->current -1;
-                    if (grandFatherIndex >=0 ) {
-                        grandFather = stack->stack[grandFatherIndex];
-                    }
-                     
-                   if (grandFather && grandFather->children && grandFather->children->next) {
-                       NodeList *childToRemove = grandFather->children;
-                       grandFather->children = childToRemove->next;
-                       mFree(childToRemove);
-                       
-                       node = grandFather->children->node;
-                       
-                       
-                       tmpNode = pop(stack);
-                       increaseNode(tmpNode, mapOfCar);
-                       mFree(tmpNode);
-                       break;
-                   }
-                   /// 一袋单传
-                   else {
-                       tmpNode = pop(stack);
-                       if (tmpNode) {
-                           increaseNode(tmpNode,mapOfCar);
-                           debugNode(NULL,tmpNode, mapOfCar,"pop",1,6);
-                           mFree(tmpNode);
-                       }
-                       
-                       
-                       tmpNode = getTop(stack);
-    
-                   }
                 }
                 
             }
@@ -958,7 +938,7 @@ void test(){
     
     
     setChartLog(0);
-    int C = 1133;
+    int C = 100;
     
     int v = 0;
     int unfitCount = 0;
@@ -968,8 +948,8 @@ void test(){
     
     
     while (C -- > 0) {
-        const int size = 8;
-        unsigned char a[size] ;"I Love You";
+        const int size = 3;
+        unsigned char a[size] = "love";//I Love You";
         
         arc4random_buf(a , size);
 //ih09m7umi8i,u8j,h7mgt7
