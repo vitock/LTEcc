@@ -82,14 +82,6 @@ void printKey(const void *key,int  size){
 
 int main(int argc, const char * argv[]) {
     int i = 0;
-    MyLogFunc(@"abc");
-    MyLogFunc(@"abc %@ %d",@"2", i++);
-    MyLogFunc(@"abc %@ %@ %d",@"2-",@"3-",i ++);
-//    MyLogFunc(@"lilith %@",@"33");
-    
-    
-    NSLog(@"%d",i);
-    
     
     NSMutableDictionary *dic = [NSMutableDictionary new];
     for (int i = 1 ; i < argc ; ++i ) {
@@ -188,14 +180,22 @@ int main(int argc, const char * argv[]) {
         }
         
         
-        printRandomArt(dataMsg.bytes , dataMsg.length, NULL , NULL);
+        printRandomArt(dataMsg.bytes , (int)dataMsg.length, NULL , NULL);
         
     }
     else {
-        NSString *help = @"lwEcc \ng [-prikey/secKey/s prikey]  generate keypair\
+        NSString *link = @"AAAQACAAQQB5KEiWgHoyx11nzuIpeJJmRCeB0dTfynTZIoR+zq4p8BEsBUD/73rzN4jsWWyP+FsEN5H73UttAIGvbz8yX4WMQq6m17B3PK2rR4Btq0vgJdmc9p6TfwmPK/rdHV/KxQI6pFzzNc3NNCLbOiqcBmwb4aEMhjFDWK955oxzq5+xb+/wtbXbhR/riLpqUWaaqIjGq2Aef5wxmxcvbcd3iqJcg4ppWqAdT+v9UBcxEd8bOBw=";
+        
+        NSData *data  = [[LTEccTool shared] ecc_decrypt:[LTEccTool base64DeCode:link] private:@"6rCih8Q2j2n8fbcBJh8632rGp5LsPhnktoTE6tBDIyY"];
+        link = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+        
+        
+        const NSString *helpfmt = @"lwEcc[ %@ ] \ng [-prikey/secKey/s prikey]  generate keypair\
         \ne  -pubkey/p pubkey -m msg\
         \nd  -prikey/s prikey -m base64ciphermsg or binary data from stdin\
         \nr  -m msg print random art of msg";
+        
+        NSString *help = [NSString stringWithFormat:helpfmt,link];
         
         fprintf(stdout,"%s", help.UTF8String);
         fprintf(stdout,"\n\nbuild:%s %s",__DATE__,__TIME__);

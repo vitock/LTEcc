@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "C42B4BBA258CBCF300C0EE5B"
-               BuildableName = "lwEcc"
+               BuildableName = "ecc"
                BlueprintName = "ECC"
                ReferencedContainer = "container:ECC.xcodeproj">
             </BuildableReference>
@@ -31,7 +31,7 @@
       </Testables>
    </TestAction>
    <LaunchAction
-      buildConfiguration = "Debug"
+      buildConfiguration = "Release"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       disableMainThreadChecker = "YES"
@@ -46,7 +46,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "C42B4BBA258CBCF300C0EE5B"
-            BuildableName = "lwEcc"
+            BuildableName = "ecc"
             BlueprintName = "ECC"
             ReferencedContainer = "container:ECC.xcodeproj">
          </BuildableReference>
@@ -63,7 +63,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "C42B4BBA258CBCF300C0EE5B"
-            BuildableName = "lwEcc"
+            BuildableName = "ecc"
             BlueprintName = "ECC"
             ReferencedContainer = "container:ECC.xcodeproj">
          </BuildableReference>

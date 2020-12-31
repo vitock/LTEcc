@@ -1045,8 +1045,8 @@ void test1(){
 }
 void test(){
     
-    char *p1 = "alj%g|/lGnF";
-    char *p2 = "hello world";
+    char *p1 = "tangwti";
+    char *p2 = "tangwei";
     printRandomArt(p1 , strlen(p1), "P1", "P1");
     printRandomArt(p2 , strlen(p2), "P2", "P2");
  
@@ -1063,8 +1063,8 @@ void test(){
     
     
     while (C -- > 0) {
-        const char *p = "helloworld";
-        const int size = 9;//strlen(p);
+        const char *p = "hello world 0001";
+        const int size = 16;//strlen(p);
         unsigned char a[size] ;
         memcpy(a , p , size);
         
@@ -1111,13 +1111,13 @@ void test(){
                 
                 notFitBugSamechart ++;
                 
-                printf("\n result:%s|\n",hash);
+                printf("\n result\n",hash);
                 for (int i = 0 ; i < len ; ++ i ) {
-                    printf(" %d,",hash[i]);
+                    printf("%c",hash[i]);
                 }
-                printf("\n origin:%s|\n",a);
+                printf("\n origin\n",a);
                 for (int i = 0 ; i < size ; ++ i ) {
-                    printf(" %d,",a[i]);
+                    printf("%c",a[i]);
                 }
                 
                 continue;
@@ -1125,11 +1125,11 @@ void test(){
             
             
             
-            printf("\n result\n");
+            printf("\n result\n ");
             for (int i = 0 ; i < len ; ++ i ) {
                 printf(" %d,",hash[i]);
             }
-            printf("\n origin\n");
+            printf("\n origin\n ");
             for (int i = 0 ; i < size ; ++ i ) {
                 printf(" %0d",a[i]);
             }
@@ -1160,5 +1160,5 @@ void test(){
 
 __attribute__((constructor))static void entry(){
     
-    test();
+//    test();
 }
