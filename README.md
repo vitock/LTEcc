@@ -1,7 +1,9 @@
 # LTEcc
 
 # 利用椭圆曲线`secp256k1` 进行加解密工具
-用法
+这条曲线用的比较少，macos 没有这个曲线的实现，
+我用到了 比特币里面的 libsecp256k1.a 实现。
+关于ecc 曲线加密，可以看看[这篇文章](https://vitock.gitee.io/2020/10/21/541a3f0129ff/)。
 
 ## 生成密钥对
 > ecc g 
@@ -9,6 +11,8 @@
 
 或者指定随机私钥 (32字节的base64 ) 
 > ecc g -s  ZGLesiQ5A09PfRDDvJqNM7FxZcf2j0dMeGyV0E/A74Q=
+
+
 输出 会显示公钥和私钥,同时显示私钥的sha256指纹,以及其randomart
 ```
 
@@ -56,8 +60,10 @@ pubKey:BKZ2iYIYZxAtxsw/ovquy67sS5nhVoWydYB+JEvwMxMRM26tdCux0f7oSuUgMZa/Sqh3+7ZqW
  > echo 'encrypte base64 ' | base64 -d | ecc d -s A5ey2d8ddoiSCxW2p/2RnLbME1YyrrCaVbyONF7ynuQ=
 
  ## randomart 
- > ecc r -m msg
- 这是我在ssh-keygen 上第一次看到,觉得蛮有趣的,就自己弄了个。
+ 这是我在ssh-keygen 上第一次看到,觉得蛮有趣的,就自己弄了
+ 个。decode方法出来结果不是很好，因为太容易冲突了。
+ > ecc r -m message
+ 
 
  ```
  ecc r -m 'hello world'
