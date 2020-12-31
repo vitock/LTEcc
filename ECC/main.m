@@ -33,7 +33,7 @@ void printKey(const void *key,int  size){
     
     unsigned char digest[32];
     CC_SHA256(keycpy, size, digest);
-    printf("\nECC encrypttion privateKey finggerprint: \n%s\nrandomart:\n",[[LTEccTool shared] bytesToBase64:digest lenOfByte:32].UTF8String);
+    printf("\nECC encryption privateKey finggerprint: \n%s\nrandomart:\n",[[LTEccTool shared] bytesToBase64:digest lenOfByte:32].UTF8String);
     printRandomArt(digest, 32,"[Secp251k1]","[SHA 256]");
     
     if (!key) {
