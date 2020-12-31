@@ -188,6 +188,7 @@ void randomArt(const  unsigned char *hash, int byteOfHash,char *title,char *end,
     outChar209[indexBorderXY(0,RandomArtMapHeight -1)] = '+';
     outChar209[indexBorderXY(RandomArtMapWidth - 2,RandomArtMapHeight -1)] = '+';
     
+#if kBorderNum
     outChar209[indexBorderXY(0, 0)] = startRealValue + 'a' +  1;
     outChar209[indexBorderXY(0, 1)] = startX + 'a';
     outChar209[indexBorderXY(1, 0)] = startY + 'a';
@@ -195,6 +196,7 @@ void randomArt(const  unsigned char *hash, int byteOfHash,char *title,char *end,
     outChar209[indexBorderXY(RandomArtMapWidth - 2,RandomArtMapHeight -1)] = endRealValue + 'a';
     outChar209[indexBorderXY(RandomArtMapWidth - 3, RandomArtMapHeight -1)] = x + 'a';
     outChar209[indexBorderXY(RandomArtMapWidth - 2, RandomArtMapHeight -2)] = y + 'a';
+#endif
     
     
    
@@ -396,11 +398,26 @@ void insertChild(char *mapOfchar, Node *nodeParent,Node *child){
         return;;
     }
     
+
+    
   
     
     ///  升序排
     
     NodeList *listItem = nodeParent->children;
+    while (listItem->next) {
+        listItem = listItem->next;
+    }
+    
+    NodeList *n = mMalloc(sizeof(NodeList));
+    n->node = child;
+    listItem->next = n;
+    
+    
+    
+    
+    return;;
+    
     
     NodeList *pre = NULL;
     
@@ -608,7 +625,12 @@ int  checkIsAscii(NodeStack *stack){
         uint8_t dirS = stack->stack[c-2]->dicretion;
         uint8_t dirlow = stack->stack[c-3]->dicretion;
         uint8_t dir = dirlow | (dirS << 2) | (dirT << 4) | (dirhight << 6);
-        return dir >= 32 && dir <= 126;
+//        return dir >= 32 && dir <= 126;
+        
+        return (dir >= 'a' && dir <= 'z')
+        || (dir >= 'A' && dir <= 'Z')
+        || dir == ' '
+        || (dir >= '0' && dir <= '9');
         
         
     }
@@ -623,90 +645,137 @@ int  searchNode(uint8_t *mapOfCar,Node *topE, Node **nodeMap,Node *node,int valu
         node->isChildAdd = 1;
         int x = node->x;
         int y = node->y;
-        {
-            int x0 = x-1;
-            int y0 = y-1;
-            valify(x0, y0);
-            
-            
-            int v = mapOfCar[indexXY(x0, y0)];
-            if(v!= 0){
-                Node *lt =   allocFromMap(nodeMap,x0,y0,v);
-                
-                if (lt->count > 0 ) {
-                    lt->allDotCount = node->allDotCount;
-                    /// 方向逆转
-                    lt->dicretion = 0;
-                    if ((x0 == eX && y0 == eY )||  (x0 == sX && y0 == sY )) {
-                        lt->isFinal = 1;
+        
+        int s = 0;
+        int d = 0;
+        
+        while (1) {
+            d = arc4random_uniform(4);
+            switch (d) {
+                case 0:
+                    if( (s & 1) == 0)
+                {
+                    s |= 1;
+                    int x0 = x-1;
+                    int y0 = y-1;
+                    valify(x0, y0);
+                    
+                    
+                    int v = mapOfCar[indexXY(x0, y0)];
+                    if(v!= 0){
+                        Node *lt =   allocFromMap(nodeMap,x0,y0,v);
+                        
+                        if (lt->count > 0 ) {
+                            lt->allDotCount = node->allDotCount;
+                            /// 方向逆转
+                            lt->dicretion = 0;
+                            if ((x0 == eX && y0 == eY )||  (x0 == sX && y0 == sY )) {
+                                lt->isFinal = 1;
+                            }
+                            
+                            insertChild(mapOfCar,node, lt);
+                        }
+                       
+                        
+                    }
+                }
+                    
+                    
+                    break;
+                case 1:
+                    if ((s & (1 << 1)) == 0) {
+                        s |= (1 << 1);
+                        /// right top
+                        {
+                            int x0 = x+1;
+                            int y0 = y-1;
+                            valify(x0, y0);
+                            int v = mapOfCar[indexXY(x0, y0)];
+                            if(v!= 0){
+                                Node *lt =   allocFromMap(nodeMap,x0,y0,v);
+                                
+                                lt->allDotCount = node->allDotCount;
+                                /// 方向逆转
+                                lt->dicretion = 1;
+                                if ((x0 == eX && y0 == eY )||  (x0 == sX && y0 == sY )) {
+                                    lt->isFinal = 1;
+                                }
+                                
+                                insertChild(mapOfCar,node, lt);
+                                 
+                            }
+                        }
                     }
                     
-                    insertChild(mapOfCar,node, lt);
-                }
-               
-                
+                    break;
+                case 2:
+                    if ((s & (1 << 2)) == 0) {
+                        s |= (1 << 2);
+                        /// left bottom
+                        {
+                            int x0 = x-1;
+                            int y0 = y+1;
+                            valify(x0, y0);
+                            int v = mapOfCar[indexXY(x0, y0)];
+                            if(v!= 0){
+                                Node *lt = allocFromMap(nodeMap,x0,y0,v);
+                                
+                                lt->allDotCount = node->allDotCount;
+                                /// 方向逆转
+                                lt->dicretion = 2;
+                                if ((x0 == eX && y0 == eY )||  (x0 == sX && y0 == sY )) {
+                                    lt->isFinal = 1;
+                                }
+                                
+                                insertChild(mapOfCar,node, lt);
+                                
+                            }
+                        }
+                    }
+                    
+                    break;
+                case 3:
+                    if ((s & (1 << 3)) ==0) {
+                        s |= (1 << 3);
+                        /// right bottom
+                        {
+                            int x0 = x+1;
+                            int y0 = y+1;
+                            valify(x0, y0);
+                            int v = mapOfCar[indexXY(x0, y0)];
+                            if(v!= 0){
+                                Node *lt =   allocFromMap(nodeMap,x0,y0,v);
+                                lt->allDotCount = node->allDotCount;
+                                lt->dicretion = 3;
+                                lt->count = v;
+                                
+                                if ((x0 == eX && y0 == eY )||  (x0 == sX && y0 == sY )) {
+                                    lt->isFinal = 1;
+                                }
+                                insertChild(mapOfCar,node, lt);
+                                
+                            }
+                        }
+                    }
+                    
+                    break;
+                    
+                default:
+                    break;
+            }
+            
+            
+            if(s == 0xf){
+                break;;
             }
         }
         
-        /// right top
-        {
-            int x0 = x+1;
-            int y0 = y-1;
-            valify(x0, y0);
-            int v = mapOfCar[indexXY(x0, y0)];
-            if(v!= 0){
-                Node *lt =   allocFromMap(nodeMap,x0,y0,v);
-                
-                lt->allDotCount = node->allDotCount;
-                /// 方向逆转
-                lt->dicretion = 1;
-                if ((x0 == eX && y0 == eY )||  (x0 == sX && y0 == sY )) {
-                    lt->isFinal = 1;
-                }
-                
-                insertChild(mapOfCar,node, lt);
-                 
-            }
-        }
-        /// left bottom
-        {
-            int x0 = x-1;
-            int y0 = y+1;
-            valify(x0, y0);
-            int v = mapOfCar[indexXY(x0, y0)];
-            if(v!= 0){
-                Node *lt = allocFromMap(nodeMap,x0,y0,v);
-                
-                lt->allDotCount = node->allDotCount;
-                /// 方向逆转
-                lt->dicretion = 2;
-                if ((x0 == eX && y0 == eY )||  (x0 == sX && y0 == sY )) {
-                    lt->isFinal = 1;
-                }
-                
-                insertChild(mapOfCar,node, lt);
-                
-            }
-        }
-        /// right bottom
-        {
-            int x0 = x+1;
-            int y0 = y+1;
-            valify(x0, y0);
-            int v = mapOfCar[indexXY(x0, y0)];
-            if(v!= 0){
-                Node *lt =   allocFromMap(nodeMap,x0,y0,v);
-                lt->allDotCount = node->allDotCount;
-                lt->dicretion = 3;
-                lt->count = v;
-                
-                if ((x0 == eX && y0 == eY )||  (x0 == sX && y0 == sY )) {
-                    lt->isFinal = 1;
-                }
-                insertChild(mapOfCar,node, lt);
-                
-            }
-        }
+        
+     
+        
+      
+       
+
     }
     else {
         /// DEBUG
@@ -760,6 +829,9 @@ void decodeRandomArt(uint8_t *hash, int *byteOfHash,unsigned char *mapOfCar){
     sX =  RandomArtWidth/2;
     sY = RandomArtHeight/2;
     
+    
+#if kBorderNum
+    
     /// 真实的 开始S结束E 值, 从左上 右下角获取
     uint8_t sValue = mapOfCar[indexBorderXY(0, 0)];
     uint8_t eValue = mapOfCar[indexBorderXY(RandomArtMapWidth - 2,RandomArtMapHeight -1)];
@@ -776,7 +848,7 @@ void decodeRandomArt(uint8_t *hash, int *byteOfHash,unsigned char *mapOfCar){
     if (sValue >= 'a' && eValue >= 'a') {
         mapOfCar[indexXY(sX, sY)] = sValue - 'a';
     }
-    
+#endif
      
     /// 去掉开始和结束强制的 15 和 16;
      
@@ -973,7 +1045,7 @@ void test1(){
 }
 void test(){
     
-    char *p1 = "W. mljev~lF";
+    char *p1 = "alj%g|/lGnF";
     char *p2 = "hello world";
     printRandomArt(p1 , strlen(p1), "P1", "P1");
     printRandomArt(p2 , strlen(p2), "P2", "P2");
@@ -991,9 +1063,8 @@ void test(){
     
     
     while (C -- > 0) {
-        const char *p = "hello world";
-         
-        const int size = 11;//strlen(p);
+        const char *p = "helloworld";
+        const int size = 9;//strlen(p);
         unsigned char a[size] ;
         memcpy(a , p , size);
         

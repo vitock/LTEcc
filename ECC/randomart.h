@@ -9,7 +9,7 @@
 #define randomart_h
 
 #include <stdio.h>
-
+#define kBorderNum 0
 
 
 void printRandomArt(const  unsigned char *hash, int byteOfHash,char *title,char *end);
