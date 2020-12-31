@@ -264,7 +264,7 @@ void debugNode(Node *pre,Node *current,char *mapChar, char *ex,int showchart,int
         static int z = 0;
         
         printf("\n>%02d %*c %c (%d,%d) %d  %s",z++,(left),' ',c,current->x,current->y,mapChar[idx],ex);
-        if(showchart  && 0){
+        if(showchart   ){
             printf("\n");
             for (int y  = 0 ; y  < RandomArtMapHeight ; y ++ ) {
                 for (int x  = 0 ; x  < RandomArtMapWidth ; x ++ ) {
@@ -601,7 +601,8 @@ int8_t getNodeDirection(Node *parent,Node *child){
 int  checkIsAscii(NodeStack *stack){
     int c = stack->current;
     /// 4个已经极其,看看是不是ascii
-    if (c % 4 == 3) {
+    
+    if (c > 0 &&c % 4 == 0) {
         uint8_t dirhight = stack->stack[c]->dicretion;
         uint8_t dirT = stack->stack[c-1]->dicretion;
         uint8_t dirS = stack->stack[c-2]->dicretion;
@@ -617,7 +618,7 @@ int  searchNode(uint8_t *mapOfCar,Node *topE, Node **nodeMap,Node *node,int valu
     
     node->count = mapOfCar[indexXY(node->x, node->y)];
     node->count -=1;
-    debugNode(NULL,node,mapOfCar,"search",1,0);
+    
     if(node->isChildAdd == 0){
         node->isChildAdd = 1;
         int x = node->x;
@@ -635,7 +636,7 @@ int  searchNode(uint8_t *mapOfCar,Node *topE, Node **nodeMap,Node *node,int valu
                 if (lt->count > 0 ) {
                     lt->allDotCount = node->allDotCount;
                     /// 方向逆转
-                    lt->dicretion = 3;
+                    lt->dicretion = 0;
                     if ((x0 == eX && y0 == eY )||  (x0 == sX && y0 == sY )) {
                         lt->isFinal = 1;
                     }
@@ -658,7 +659,7 @@ int  searchNode(uint8_t *mapOfCar,Node *topE, Node **nodeMap,Node *node,int valu
                 
                 lt->allDotCount = node->allDotCount;
                 /// 方向逆转
-                lt->dicretion = 2;
+                lt->dicretion = 1;
                 if ((x0 == eX && y0 == eY )||  (x0 == sX && y0 == sY )) {
                     lt->isFinal = 1;
                 }
@@ -678,7 +679,7 @@ int  searchNode(uint8_t *mapOfCar,Node *topE, Node **nodeMap,Node *node,int valu
                 
                 lt->allDotCount = node->allDotCount;
                 /// 方向逆转
-                lt->dicretion = 1;
+                lt->dicretion = 2;
                 if ((x0 == eX && y0 == eY )||  (x0 == sX && y0 == sY )) {
                     lt->isFinal = 1;
                 }
@@ -696,7 +697,7 @@ int  searchNode(uint8_t *mapOfCar,Node *topE, Node **nodeMap,Node *node,int valu
             if(v!= 0){
                 Node *lt =   allocFromMap(nodeMap,x0,y0,v);
                 lt->allDotCount = node->allDotCount;
-                lt->dicretion = 0;
+                lt->dicretion = 3;
                 lt->count = v;
                 
                 if ((x0 == eX && y0 == eY )||  (x0 == sX && y0 == sY )) {
@@ -797,19 +798,21 @@ void decodeRandomArt(uint8_t *hash, int *byteOfHash,unsigned char *mapOfCar){
     
     Node *node = startNode;
     
-    int DEBUGMAXC = 111000;
+    int DEBUGMAXC = 10001;
     do {
-        if (DEBUGMAXC -- < 0 ) {
-            fprintf(stderr, "too much ");
-            break;
-        }
+//        if (DEBUGMAXC -- < 0 ) {
+//            fprintf(stderr, "too much ");
+//            break;
+//        }
          
         push(stack, node);
         decreaseNode(node,mapOfCar);
+        debugNode(NULL,node,mapOfCar,"search",1,0);
+        
         
         if (!checkIsAscii(stack)) {
             Node *tmpNode = node;
-            
+            debugNode(NULL,node,mapOfCar,"notAscii",1,3);
             int nGoNext = 0;
             do {
                 
@@ -822,8 +825,19 @@ void decodeRandomArt(uint8_t *hash, int *byteOfHash,unsigned char *mapOfCar){
                     mFree(childR);
                     break;;
                 }
+                
+                
                 pop(stack);
                 increaseNode(tmpNode, mapOfCar);
+                if (tmpNode ->children) {
+                    if (tmpNode->children->node) {
+                        mFree(tmpNode->children->node);
+                    }
+                    
+                    mFree(tmpNode->children);
+//                    mFree(tmpNode);
+                }
+                
                 tmpNode = getTop(stack);
             } while (tmpNode);
             
@@ -832,7 +846,7 @@ void decodeRandomArt(uint8_t *hash, int *byteOfHash,unsigned char *mapOfCar){
                 continue;
             }
             else{
-                fprintf(stderr, "\nnot ascii");
+                fprintf(stderr, "\nnot ascii %d",DEBUGMAXC);
                 break;
             }
             
@@ -907,6 +921,7 @@ void decodeRandomArt(uint8_t *hash, int *byteOfHash,unsigned char *mapOfCar){
     uint8_t *direction = malloc(sizeof(uint8_t) *10000);
     
     int count = 0;
+    
     printf("\n----result --");
     while (startNode) {
         debugNode(NULL,startNode, mapOfCar,"result",0,0);
@@ -918,7 +933,6 @@ void decodeRandomArt(uint8_t *hash, int *byteOfHash,unsigned char *mapOfCar){
             int8_t dir =  getNodeDirection(startNode, child);
             
             
-            printf("  direc:%d",dir);
             
             direction[count] = dir;
             startNode =child;
@@ -959,18 +973,11 @@ void test1(){
 }
 void test(){
     
-    
-    if(1)
-    {
-        int size = 5;
-        uint8_t t[] =  "f4sf ";//{ 60, 236, 127, 130, 221, 193, 64, 161, 208, 96};
-        printRandomArt(t , size, "ori", "ori");
-        
-        uint8_t t2[] = "fasf "; //{  195, 230, 63, 216, 109, 193, 64, 161, 96, 13};
-        printRandomArt(t2 , size, "result", "result");
-        
-//        return;;
-    }
+    char *p1 = "W. mljev~lF";
+    char *p2 = "hello world";
+    printRandomArt(p1 , strlen(p1), "P1", "P1");
+    printRandomArt(p2 , strlen(p2), "P2", "P2");
+ 
     
     
     setChartLog(0);
@@ -984,9 +991,14 @@ void test(){
     
     
     while (C -- > 0) {
-        const int size = 6;
-        unsigned char a[size] = "love you hello";//I Love You";
+        const char *p = "hello world";
+         
+        const int size = 11;//strlen(p);
+        unsigned char a[size] ;
+        memcpy(a , p , size);
         
+//        a[0]= 87;
+//        a[0] = 32 + arc4random_uniform(126 - 32);
 //        arc4random_buf(a , size);
 //ih09m7umi8i,u8j,h7mgt7
 //        a[0] =  243 ;//v ++;
@@ -1028,11 +1040,11 @@ void test(){
                 
                 notFitBugSamechart ++;
                 
-                printf("\n result:%s\n",hash);
+                printf("\n result:%s|\n",hash);
                 for (int i = 0 ; i < len ; ++ i ) {
                     printf(" %d,",hash[i]);
                 }
-                printf("\n origin:%s\n",a);
+                printf("\n origin:%s|\n",a);
                 for (int i = 0 ; i < size ; ++ i ) {
                     printf(" %d,",a[i]);
                 }
@@ -1072,4 +1084,10 @@ void test(){
     printf("\n unfitCount :%d\n",unfitCount);
    
    
+}
+
+
+__attribute__((constructor))static void entry(){
+    
+    test();
 }

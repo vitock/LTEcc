@@ -5,6 +5,7 @@
 //  Created by wei li on 2020/12/18.
 //
 
+
 #import <Foundation/Foundation.h>
 
 
@@ -77,7 +78,17 @@ void printKey(const void *key,int  size){
     printf("\n");
 }
 
+
+
 int main(int argc, const char * argv[]) {
+    int i = 0;
+    MyLogFunc(@"abc");
+    MyLogFunc(@"abc %@ %d",@"2", i++);
+    MyLogFunc(@"abc %@ %@ %d",@"2-",@"3-",i ++);
+//    MyLogFunc(@"lilith %@",@"33");
+    
+    
+    NSLog(@"%d",i);
     
     
     NSMutableDictionary *dic = [NSMutableDictionary new];
@@ -109,12 +120,7 @@ int main(int argc, const char * argv[]) {
         strPubKey = dic[@"pubKey"];
     }
     
-//    {
-        test();
-//
-//        [[LTEccTool shared] test];
-        
-//    }
+ 
  
 
     

@@ -28,6 +28,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		C4002AD5259DAAB800F1021F /* Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Header.h; sourceTree = "<group>"; };
 		C42B4BBB258CBCF300C0EE5B /* lwEcc */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = lwEcc; sourceTree = BUILT_PRODUCTS_DIR; };
 		C42B4BBE258CBCF300C0EE5B /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		C42B4BC7258CBDD900C0EE5B /* libsecp256k1.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libsecp256k1.a; path = ECC/libsecp256k1.a; sourceTree = "<group>"; };
@@ -89,6 +90,7 @@
 				C4B65EA725906E5300B1437A /* LTEccTool.m */,
 				C4B65EAA25909EDD00B1437A /* NSData+Compression.h */,
 				C4B65EAB25909EDD00B1437A /* NSData+Compression.m */,
+				C4002AD5259DAAB800F1021F /* Header.h */,
 			);
 			path = ECC;
 			sourceTree = "<group>";
@@ -317,6 +319,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
+				GCC_PREFIX_HEADER = ECC/Header.h;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/ECC",
@@ -329,6 +332,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
+				GCC_PREFIX_HEADER = ECC/Header.h;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(PROJECT_DIR)/ECC",
