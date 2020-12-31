@@ -797,12 +797,47 @@ void decodeRandomArt(uint8_t *hash, int *byteOfHash,unsigned char *mapOfCar){
     
     Node *node = startNode;
     
-//    int DEBUGMAXC = 1199000;
+    int DEBUGMAXC = 111000;
     do {
-//        if (DEBUGMAXC -- < 0 ) {
-//            fprintf(stderr, "too much ");
-//            break;
-//        }
+        if (DEBUGMAXC -- < 0 ) {
+            fprintf(stderr, "too much ");
+            break;
+        }
+         
+        push(stack, node);
+        decreaseNode(node,mapOfCar);
+        
+        if (!checkIsAscii(stack)) {
+            Node *tmpNode = node;
+            
+            int nGoNext = 0;
+            do {
+                
+                if (tmpNode->children && tmpNode->children->next) {
+                    NodeList *childR = tmpNode->children;
+                    node = childR->next->node;
+                    tmpNode->children = childR->next;
+                    nGoNext = 1;
+                    mFree(childR->node);
+                    mFree(childR);
+                    break;;
+                }
+                pop(stack);
+                increaseNode(tmpNode, mapOfCar);
+                tmpNode = getTop(stack);
+            } while (tmpNode);
+            
+            
+            if (tmpNode  || nGoNext) {
+                continue;
+            }
+            else{
+                fprintf(stderr, "\nnot ascii");
+                break;
+            }
+            
+        }
+        
         
         if( node->x == eX && node->y == eY && checkStackIsFinishState(stack,mapOfCar,startNode ,eX,eY,sX,sY) ){
             finish = 1;
@@ -810,9 +845,10 @@ void decodeRandomArt(uint8_t *hash, int *byteOfHash,unsigned char *mapOfCar){
 
         }
         
+      
         
-        push(stack, node);
-        decreaseNode(node,mapOfCar);
+        
+        
         searchNode(mapOfCar,startNode,nodeMap,node,sumOfdotvalue,stack,eX,eY,sX,sY);
          
         /// 已经是叶子节点了
@@ -926,11 +962,11 @@ void test(){
     
     if(1)
     {
-        int size = 1;
-        uint8_t t[] = { 60, 236, 127, 130, 221, 193, 64, 161, 208, 96};
+        int size = 5;
+        uint8_t t[] =  "f4sf ";//{ 60, 236, 127, 130, 221, 193, 64, 161, 208, 96};
         printRandomArt(t , size, "ori", "ori");
         
-        uint8_t t2[] = {  195, 230, 63, 216, 109, 193, 64, 161, 96, 13};
+        uint8_t t2[] = "fasf "; //{  195, 230, 63, 216, 109, 193, 64, 161, 96, 13};
         printRandomArt(t2 , size, "result", "result");
         
 //        return;;
@@ -938,7 +974,7 @@ void test(){
     
     
     setChartLog(0);
-    int C = 100;
+    int C = 1;
     
     int v = 0;
     int unfitCount = 0;
@@ -948,10 +984,10 @@ void test(){
     
     
     while (C -- > 0) {
-        const int size = 3;
-        unsigned char a[size] = "love";//I Love You";
+        const int size = 6;
+        unsigned char a[size] = "love you hello";//I Love You";
         
-        arc4random_buf(a , size);
+//        arc4random_buf(a , size);
 //ih09m7umi8i,u8j,h7mgt7
 //        a[0] =  243 ;//v ++;
 //        a[1] =  37;
@@ -992,11 +1028,11 @@ void test(){
                 
                 notFitBugSamechart ++;
                 
-                printf("\n result\n");
+                printf("\n result:%s\n",hash);
                 for (int i = 0 ; i < len ; ++ i ) {
                     printf(" %d,",hash[i]);
                 }
-                printf("\n origin\n");
+                printf("\n origin:%s\n",a);
                 for (int i = 0 ; i < size ; ++ i ) {
                     printf(" %d,",a[i]);
                 }
