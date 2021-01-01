@@ -179,8 +179,11 @@ int main(int argc, const char * argv[]) {
             dataMsg =  [strmsg dataUsingEncoding:NSUTF8StringEncoding];
         }
         
+        NSString *title = dic[@"t"];
+        NSString *bottom = dic[@"b"];
         
-        printRandomArt(dataMsg.bytes , (int)dataMsg.length, NULL , NULL);
+        
+        printRandomArt(dataMsg.bytes , (int)dataMsg.length, title.UTF8String , bottom.UTF8String);
         
     }
     else {
@@ -190,15 +193,16 @@ int main(int argc, const char * argv[]) {
         link = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
         
         
-        const NSString *helpfmt = @"lwEcc[ %@ ] \ng [-prikey/secKey/s prikey]  generate keypair\
+        const NSString *helpfmt = @"lwEcc %s \n%@\ng [-prikey/secKey/s prikey]  generate keypair\
         \ne  -pubkey/p pubkey -m msg\
         \nd  -prikey/s prikey -m base64ciphermsg or binary data from stdin\
         \nr  -m msg print random art of msg";
         
-        NSString *help = [NSString stringWithFormat:helpfmt,link];
+        ;
+        NSString *help = [NSString stringWithFormat:helpfmt,Version,link];
         
         fprintf(stdout,"%s", help.UTF8String);
-        fprintf(stdout,"\n\nbuild:%s %s",__DATE__,__TIME__);
+        fprintf(stdout,"\n\nbuild:%s %s\n",__DATE__,__TIME__);
         
     }
     

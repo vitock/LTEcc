@@ -25,6 +25,6 @@ metamacro_at20( __VA_ARGS__, 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0)
 
  
 
-
+#define Version "0.0.1"
 
 #endif /* Header_h */
