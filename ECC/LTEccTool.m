@@ -16,7 +16,7 @@
 #import "secp256k1_ecdh.h"
 #import "base64.h"
 #import "Header.h"
-
+#import <Security/Security.h>
 @interface ECCEncResult:NSObject
 @property (nonatomic, strong)NSData *ephemPubkeyData;
 @property (nonatomic, strong)NSData *iv;
@@ -205,7 +205,7 @@ static int my_ecdh_hash_function(
         do {
             arc4random_buf(tmp + 32, 32);
             CCHmac(kCCHmacAlgSHA256, tmp, 64, tmp + 32, 32, secKey32);
-        } while (arc4random_uniform(5) == 0 );
+        } while (0);
     } while (!secp256k1_ec_seckey_verify(self.ctx , secKey32));
 }
  
@@ -247,7 +247,7 @@ static int my_ecdh_hash_function(
         fprintf(stderr, "pubkey create fail");
         return nil;
     }
-    char outHash[64];
+    unsigned char outHash[64];
     r = secp256k1_ecdh(self.ctx, outHash, &pubkey, randKey, my_ecdh_hash_function, NULL);
     /// 不需要了,重置randkey
     [self genSecKey:randKey];
@@ -256,12 +256,8 @@ static int my_ecdh_hash_function(
         return nil;
     }
     
-    
-    
-    
     char iv[kCCBlockSizeAES128] ;
     arc4random_buf(iv , kCCBlockSizeAES128);
-    
     NSData *dataPlain = dataPlain0; // [strPlainTxt dataUsingEncoding:NSUTF8StringEncoding];
     
     
@@ -416,11 +412,126 @@ static int my_ecdh_hash_function(
 
  
 
-- (void)test{
-    
 
+OS_CONST static NSString *seckeyforkeychain = @"y1NsDrXnvQfx1DxyebUALOAjpGuUojANwWbpO4y/x90=";
+OS_CONST static NSString *pubkeyforkeychain = @"BLLLgvLL7eoER5gPJ6eFhj4T3GPzSMOlLxxlJ5leG75RcQr05uaxqwzIwl7h2cdxnGW0Kehwe/cxtcGTrc8n5TA=";
+
+
+- (NSString *)getPublicKeyInKeychain{
+    NSMutableDictionary *query = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+            (id)kSecClassGenericPassword,(id)kSecClass,
+            @"vitock.ecc.seckey.seckeys", (id)kSecAttrService,
+            @"e46c6231b528cd74e81570e0409eac2a", (id)kSecAttrAccount,
+            (id)kSecAttrAccessibleAfterFirstUnlock,(id)kSecAttrAccessible,
+            nil];
+  
+    [query setObject:(id)kCFBooleanTrue forKey:(id)kSecReturnData];
+    [query setObject:(id)kSecMatchLimitOne forKey:(id)kSecMatchLimit];
+    
+    NSString *strPri = nil;
+    CFDataRef keyData = NULL;
+    if (SecItemCopyMatching((CFDictionaryRef)query, (CFTypeRef *)&keyData) == noErr) {
+        NSString *strB64 = [[NSString alloc] initWithData:(__bridge NSData * _Nonnull)(keyData) encoding:NSUTF8StringEncoding];
+        
+        NSData *datBase64 = [self base64ToData:strB64];
+        NSData *datKey = [self ecc_decrypt:datBase64 private:seckeyforkeychain];
+        strPri = [self bytesToBase64:datKey.bytes lenOfByte:datKey.length];
+        
+        
+        
+    }
+    if (keyData)
+        CFRelease(keyData);
+    return strPri;
+    
 }
 
+
+- (NSString *)getSecKeyInKeychain{
+    NSMutableDictionary *query = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+            (id)kSecClassGenericPassword,(id)kSecClass,
+            @"vitock.ecc.seckey.seckeys", (id)kSecAttrService,
+            @"bd454dc28bdd8ffda5c775185ccc9814", (id)kSecAttrAccount,
+            (id)kSecAttrAccessibleAfterFirstUnlock,(id)kSecAttrAccessible,
+            nil];
+  
+    [query setObject:(id)kCFBooleanTrue forKey:(id)kSecReturnData];
+    [query setObject:(id)kSecMatchLimitOne forKey:(id)kSecMatchLimit];
+    
+    NSString *strPri = nil;
+    CFDataRef keyData = NULL;
+    if (SecItemCopyMatching((CFDictionaryRef)query, (CFTypeRef *)&keyData) == noErr) {
+        
+        NSString *strB64 = [[NSString alloc] initWithData:(__bridge NSData * _Nonnull)(keyData) encoding:NSUTF8StringEncoding];
+        
+        NSData *datBase64 = [self base64ToData:strB64];
+        NSData *datKey = [self ecc_decrypt:datBase64 private:seckeyforkeychain];
+        strPri = [self bytesToBase64:(void * )datKey.bytes lenOfByte:datKey.length];
+    }
+    if (keyData)
+        CFRelease(keyData);
+    return strPri;
+    
+}
+
+- (void)saveKeyToKeyChain:(NSString *)secKey pubKey:(NSString *)pubKey{
+    
+    if (secKey) {
+        NSData *dataSec = [self base64ToData:secKey];
+        NSData *datSecEnc =[self ecc_encrypt:dataSec pubkey:pubkeyforkeychain];
+        
+        NSString *SaveValue = [self bytesToBase64:(void * )datSecEnc.bytes lenOfByte:datSecEnc.length];
+         
+        NSMutableDictionary *query = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+                (id)kSecClassGenericPassword,(id)kSecClass,
+                @"vitock.ecc.seckey.seckeys", (id)kSecAttrService,
+                @"bd454dc28bdd8ffda5c775185ccc9814", (id)kSecAttrAccount,
+                (id)kSecAttrAccessibleAfterFirstUnlock,(id)kSecAttrAccessible,
+                nil];
+      
+        [query setObject:SaveValue forKey:(id)kSecValueData];
+        OSStatus status = SecItemDelete((__bridge CFDictionaryRef)query);
+        status = SecItemAdd((__bridge CFDictionaryRef)query, NULL);
+        
+        if(status != errSecSuccess){
+            MyLogFunc(@"save key to key chain fail");
+        }
+    }
+    
+    if (pubKey.length ) {
+        NSData *dataPub = [self base64ToData:pubKey];
+        NSData *datPubEnc =[self ecc_encrypt:dataPub pubkey:pubkeyforkeychain];
+        NSString *strSecSave = [self bytesToBase64:(void * )datPubEnc.bytes lenOfByte:datPubEnc.length];
+        
+        NSMutableDictionary *query = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+                (id)kSecClassGenericPassword,(id)kSecClass,
+                @"vitock.ecc.seckey.seckeys", (id)kSecAttrService,
+                @"e46c6231b528cd74e81570e0409eac2a", (id)kSecAttrAccount,
+                (id)kSecAttrAccessibleAfterFirstUnlock,(id)kSecAttrAccessible,
+                nil];
+      
+        [query setObject:strSecSave forKey:(id)kSecValueData];
+        SecItemDelete((__bridge CFDictionaryRef)query);
+        OSStatus status = SecItemAdd((__bridge CFDictionaryRef)query, NULL);
+        
+        if(status != errSecSuccess){
+            MyLogFunc(@"save key to key chain fail");
+        }
+    }
+     
+}
  
 @end
+
+//
+//XPC_CONSTRUCTOR static void test(){
+//
+//    NSDictionary *dicKeyPair = [[LTEccTool shared] genKeyPair:nil];
+//
+//    NSString *str =  [[LTEccTool shared] getSecKeyInKeychain];
+//    NSString *str2 =  [[LTEccTool shared] getPublicKeyInKeychain];
+//
+//    MyLogFunc(@"%@\n%@",str,str2);
+//
+//}
 

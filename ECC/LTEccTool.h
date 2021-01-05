@@ -24,9 +24,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (NSString *)bytesToBase64:(void *)byte lenOfByte:(size_t )len;
 
-
-
-- (void)test;
+- (void)saveKeyToKeyChain:(NSString *)secKey pubKey:(NSString *)pubKey;
+- (NSString *)getSecKeyInKeychain;
+- (NSString *)getPublicKeyInKeychain;
 @end
 
 NS_ASSUME_NONNULL_END

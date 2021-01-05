@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		C42B4BBF258CBCF300C0EE5B /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = C42B4BBE258CBCF300C0EE5B /* main.m */; };
 		C42B4BC8258CBDD900C0EE5B /* libsecp256k1.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C42B4BC7258CBDD900C0EE5B /* libsecp256k1.a */; };
+		C45CFC9A25A3FB9E00FB7AE0 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C45CFC9925A3FB9E00FB7AE0 /* Security.framework */; };
 		C4B65EA825906E5300B1437A /* LTEccTool.m in Sources */ = {isa = PBXBuildFile; fileRef = C4B65EA725906E5300B1437A /* LTEccTool.m */; };
 		C4B65EAC25909EDD00B1437A /* NSData+Compression.m in Sources */ = {isa = PBXBuildFile; fileRef = C4B65EAB25909EDD00B1437A /* NSData+Compression.m */; };
 		C4B65EB525935BFD00B1437A /* randomart.c in Sources */ = {isa = PBXBuildFile; fileRef = C4B65EB425935BFD00B1437A /* randomart.c */; };
@@ -38,6 +39,7 @@
 		C42B4BCD258CC0C400C0EE5B /* secp256k1_extrakeys.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = secp256k1_extrakeys.h; sourceTree = "<group>"; };
 		C42B4BCE258CC0C400C0EE5B /* secp256k1_preallocated.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = secp256k1_preallocated.h; sourceTree = "<group>"; };
 		C42B4BCF258CC0C400C0EE5B /* secp256k1.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = secp256k1.h; sourceTree = "<group>"; };
+		C45CFC9925A3FB9E00FB7AE0 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
 		C4B65EA625906E5300B1437A /* LTEccTool.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LTEccTool.h; sourceTree = "<group>"; };
 		C4B65EA725906E5300B1437A /* LTEccTool.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LTEccTool.m; sourceTree = "<group>"; };
 		C4B65EAA25909EDD00B1437A /* NSData+Compression.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSData+Compression.h"; sourceTree = "<group>"; };
@@ -53,6 +55,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C45CFC9A25A3FB9E00FB7AE0 /* Security.framework in Frameworks */,
 				C42B4BC8258CBDD900C0EE5B /* libsecp256k1.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -98,6 +101,7 @@
 		C42B4BC6258CBDD900C0EE5B /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				C45CFC9925A3FB9E00FB7AE0 /* Security.framework */,
 				C42B4BC7258CBDD900C0EE5B /* libsecp256k1.a */,
 			);
 			name = Frameworks;

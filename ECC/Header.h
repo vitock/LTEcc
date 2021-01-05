@@ -16,12 +16,17 @@ metamacro_at20( __VA_ARGS__, 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0)
 
 
  
-#define MyLogFunc0(fmt)   NSLog((@"%s line_%d " fmt),__FUNCTION__,__LINE__  )
-#define MyLogFunc1(fmt,...)   NSLog((@"%s line_%d " fmt),__FUNCTION__,__LINE__ ,__VA_ARGS__ )
+#define __L_L_L_0(fmt)   NSLog((@"%s line_%d " fmt),__FUNCTION__,__LINE__  )
+#define __L_L_L_1(fmt,...)   NSLog((@"%s line_%d " fmt),__FUNCTION__,__LINE__ ,__VA_ARGS__ )
 
 #define CAT(A,B) CAT_(A,B)
 #define CAT_(A,B) A##B
-#define MyLogFunc(...)  CAT(MyLogFunc,metamacro_is_only_one(__VA_ARGS__) )(__VA_ARGS__)
+
+#ifdef DEBUG
+#define MyLogFunc(...)  CAT(__L_L_L_,metamacro_is_only_one(__VA_ARGS__) )(__VA_ARGS__)
+#else
+#define MyLogFunc(...)
+#endif
 
  
 
