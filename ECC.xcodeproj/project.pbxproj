@@ -30,7 +30,7 @@
 
 /* Begin PBXFileReference section */
 		C4002AD5259DAAB800F1021F /* Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Header.h; sourceTree = "<group>"; };
-		C42B4BBB258CBCF300C0EE5B /* ecc */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = ecc; sourceTree = BUILT_PRODUCTS_DIR; };
+		C42B4BBB258CBCF300C0EE5B /* ec */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = ec; sourceTree = BUILT_PRODUCTS_DIR; };
 		C42B4BBE258CBCF300C0EE5B /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		C42B4BC7258CBDD900C0EE5B /* libsecp256k1.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libsecp256k1.a; path = ECC/libsecp256k1.a; sourceTree = "<group>"; };
 		C42B4BCA258CC0C400C0EE5B /* secp256k1_ecdh.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = secp256k1_ecdh.h; sourceTree = "<group>"; };
@@ -75,7 +75,7 @@
 		C42B4BBC258CBCF300C0EE5B /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				C42B4BBB258CBCF300C0EE5B /* ecc */,
+				C42B4BBB258CBCF300C0EE5B /* ec */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -138,7 +138,7 @@
 			);
 			name = ECC;
 			productName = ECC;
-			productReference = C42B4BBB258CBCF300C0EE5B /* ecc */;
+			productReference = C42B4BBB258CBCF300C0EE5B /* ec */;
 			productType = "com.apple.product-type.tool";
 		};
 /* End PBXNativeTarget section */
@@ -188,7 +188,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\nexport\n\ncp -f \"${BUILT_PRODUCTS_DIR}/${EXECUTABLE_NAME}\" ~/mybin/ecc\n";
+			shellScript = "# Type a script or drag a script file from your workspace to insert its path.\nexport\n\ncp -f \"${BUILT_PRODUCTS_DIR}/${EXECUTABLE_NAME}\" ~/mybin/ec\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -328,7 +328,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/ECC",
 				);
-				PRODUCT_NAME = ecc;
+				PRODUCT_NAME = ec;
 			};
 			name = Debug;
 		};
@@ -341,7 +341,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)/ECC",
 				);
-				PRODUCT_NAME = ecc;
+				PRODUCT_NAME = ec;
 			};
 			name = Release;
 		};

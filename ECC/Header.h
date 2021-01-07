@@ -29,8 +29,11 @@ metamacro_at20( __VA_ARGS__, 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0)
 #endif
 
  
-#define PrintErr(err) fprintf(stderr, ("\033[31;47m" err "\033[0m\n"))
- 
+#define __err__0(fmt) fprintf(stderr, ("\033[31;47m" fmt "\033[0m\n"))
+#define __err__1(fmt,...) fprintf(stderr, ("\033[31;47m" fmt "\033[0m\n"),__VA_ARGS__)
+
+#define PrintErr(...) CAT(__err__,metamacro_is_only_one(__VA_ARGS__))(__VA_ARGS__)
+
 #define Version "0.0.3"
 
 #endif /* Header_h */

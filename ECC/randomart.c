@@ -508,7 +508,7 @@ Node *pop(NodeStack *stack){
 void  push(NodeStack *stack,Node *p){
     int c = stack->current;
     if (c == MaxStackSize) {
-        fprintf(stderr, "\nmax stack size %d\n",MaxStackSize);
+        PrintErr("\nmax stack size %d\n",MaxStackSize);
         exit(1);
         return;
     }
@@ -918,7 +918,7 @@ void decodeRandomArt(uint8_t *hash, int *byteOfHash,unsigned char *mapOfCar){
                 continue;
             }
             else{
-                fprintf(stderr, "\nnot ascii %d",DEBUGMAXC);
+                PrintErr("\nnot ascii %d",DEBUGMAXC);
                 break;
             }
             

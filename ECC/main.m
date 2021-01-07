@@ -37,7 +37,7 @@ void printKey(const void *key,int  size){
     printRandomArt(digest, 32,"[Secp251k1]","[SHA 256]");
     
     if (!key) {
-        fprintf(stderr, "\033[31;47m No Key \033[0m");
+        PrintErr("No Key");
         return;
     }
     int ZeroCount= 0;
@@ -164,7 +164,7 @@ int main(int argc, const char * argv[]) {
         }
         
         if (strPubKey.length == 0) {
-            fprintf(stderr, "\033[31;47m need pubkey ,use -p pubkey\033[0m\n");
+            PrintErr("need pubkey ,use -p pubkey");
             return 1;
         }
         
@@ -175,9 +175,6 @@ int main(int argc, const char * argv[]) {
             NSString *inpath = dicArg[@"f"];
             NSString *outpath = dicArg[@"o"];
             if (inpath.length) {
-                if (outpath.length == 0 ) {
-                    outpath = @"/dev/stdout";
-                }
                 [[LTEccTool shared] ecc_encryptFile:inpath outPath:outpath pubkey:strPubKey];
                 return 0;
             }
@@ -197,18 +194,15 @@ int main(int argc, const char * argv[]) {
         }
         
         if (strSecKey.length == 0) {
-            fprintf(stderr, "\033[31;47m need secKey user -s seckey\033[0m");
+            PrintErr("need secKey user -s seckey");
          
             return 1;
         }
         NSString *strmsg = dicArg[@"m"];
         if (!strmsg) {
             NSString *inpath = dicArg[@"f"];
-            NSString *outpath = dicArg[@"o"];
             if (inpath.length) {
-                if (outpath.length == 0 ) {
-                    outpath = @"/dev/stdout";
-                }
+                NSString *outpath = dicArg[@"o"];
                 [[LTEccTool shared] ecc_decryptFile:inpath outPath:outpath secKey:strSecKey];
                 return 0;
             }
@@ -260,15 +254,20 @@ int main(int argc, const char * argv[]) {
         \nd  -prikey/s prikey -m base64ciphermsg  binary data from stdin [-f inputfilepath] [-o outpath]\
         \nr  -m msg print random art of msg\
         \ns  show saved key in keychain\n\
-        \n if e [-f] [-o] is specified,this will not zip the content,you need compress it yourself";
+        \nif e [-f] is specified,this will not zip the content,you need compress it yourself\
+        \n[-o]  only works when -f is sepecified";
         ;
         NSString *help = [NSString stringWithFormat:helpfmt,Version,link];
+        
         
         fprintf(stdout,"%s", help.UTF8String);
         fprintf(stdout,"\n\nbuild:%s %s\n",__DATE__,__TIME__);
         
     }
+    
+ 
     fflush(stdout);
+    
     
     
     return 0;

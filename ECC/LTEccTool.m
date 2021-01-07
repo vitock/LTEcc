@@ -18,7 +18,7 @@
 #import "Header.h"
 #import <Security/Security.h>
 #include <zlib.h>
-
+#define kGzBlockSize (1<<14)
 
 @interface ECCEncResult:NSObject
 @property (nonatomic, strong)NSData *ephemPubkeyData;
@@ -171,7 +171,8 @@ static int my_ecdh_hash_function(
         dataPrivate = [self base64ToData:privateKey];
         pPrivate = (void *) dataPrivate.bytes;
         if(dataPrivate.length != 32 || !secp256k1_ec_seckey_verify(self.ctx, dataPrivate.bytes)){
-            fprintf(stderr, "seckey lenth must be 32 byte\n");
+            PrintErr( "seckey lenth must be 32 byte\n");
+            
             return nil;
         }
     }
@@ -243,7 +244,7 @@ static int my_ecdh_hash_function(
     int r = secp256k1_ec_pubkey_parse(self.ctx, &pubkey, dataPub.bytes, dataPub.length);
     if (r == 0 ) {
         
-        fprintf(stderr, "pubkey is not valid");
+        PrintErr( "pubkey is not valid");
         return nil;
     }
     
@@ -254,7 +255,7 @@ static int my_ecdh_hash_function(
     secp256k1_pubkey randomPub;
     r = secp256k1_ec_pubkey_create(self.ctx, &randomPub, randKey);
     if (r == 0 ) {
-        fprintf(stderr, "pubkey create fail");
+        PrintErr( "pubkey create fail");
         return nil;
     }
     unsigned char outHash[64];
@@ -262,7 +263,7 @@ static int my_ecdh_hash_function(
     /// 不需要了,重置randkey
     [self genSecKey:randKey];
     if (r == 0) {
-        fprintf(stderr, "pubkey is not falid");
+        PrintErr( "pubkey is not falid");
         return nil;
     }
     
@@ -344,7 +345,7 @@ static int my_ecdh_hash_function(
     secp256k1_pubkey ephemPubKey ;
     int r0 = secp256k1_ec_pubkey_parse(self.ctx, &ephemPubKey, r.ephemPubkeyData.bytes, r.ephemPubkeyData.length);
     if (!r0) {
-        fprintf(stderr, "no valid pubkey");
+        PrintErr( "no valid pubkey");
         return nil;
     }
     
@@ -352,7 +353,7 @@ static int my_ecdh_hash_function(
     
     r0 = secp256k1_ecdh(self.ctx, outHash, &ephemPubKey, pPrivateKey, my_ecdh_hash_function, NULL);
     if (r0 == 0) {
-        fprintf(stderr, "fail to ecdh");
+        PrintErr( "fail to ecdh");
         return nil;
     }
     
@@ -372,7 +373,7 @@ static int my_ecdh_hash_function(
         MyLogFunc(@"\ncaculted: %@\nmacOrigin: %@",[self bytesToBase64:dataMac.bytes lenOfByte:dataMac.length],[self bytesToBase64:r.mac.bytes lenOfByte:r.mac.length]);
         
         
-        fprintf(stderr, "mac not fit\n");
+        PrintErr( "mac not fit\n");
         return nil;
     }
     
@@ -452,7 +453,8 @@ OS_CONST static NSString *pubkeyforkeychain = @"BLLLgvLL7eoER5gPJ6eFhj4T3GPzSMOl
     
     NSString *strPri = nil;
     CFDataRef keyData = NULL;
-    if (SecItemCopyMatching((CFDictionaryRef)query, (CFTypeRef *)&keyData) == noErr) {
+    OSStatus status = SecItemCopyMatching((CFDictionaryRef)query, (CFTypeRef *)&keyData);
+    if (noErr == status ) {
         NSString *strB64 = [[NSString alloc] initWithData:(__bridge NSData * _Nonnull)(keyData) encoding:NSUTF8StringEncoding];
         
         NSData *datBase64 = [self base64ToData:strB64];
@@ -545,6 +547,17 @@ OS_CONST static NSString *pubkeyforkeychain = @"BLLLgvLL7eoER5gPJ6eFhj4T3GPzSMOl
 
 - (void)ecc_decryptFile:(NSString *)inFilePath outPath:(NSString *)outpath secKey:(NSString *)seckey{
     inFilePath =[self dealPath:inFilePath];
+    
+    if (!outpath) {
+        if (inFilePath.length > 3 &&  [[inFilePath pathExtension] isEqualToString:@"ec"]) {
+            outpath = [inFilePath stringByDeletingPathExtension];
+        }
+        else{
+            outpath = [inFilePath stringByAppendingPathExtension:@"dec"];
+        }
+    }
+    
+    
     outpath =[self dealPath:outpath];
     
     NSInputStream *streamIn = [[NSInputStream alloc] initWithFileAtPath:inFilePath];
@@ -578,7 +591,7 @@ OS_CONST static NSString *pubkeyforkeychain = @"BLLLgvLL7eoER5gPJ6eFhj4T3GPzSMOl
         NSUInteger len1 = ivLen + macLen + ephermPubLen;
         NSUInteger len2 = [streamIn read:buffer maxLength:len1];
         if (len1 != len2) {
-            fprintf(stderr, "file format is not suitable,no iv ,mac or ephermPubkey");
+            PrintErr( "file format is not suitable,no iv ,mac or ephermPubkey");
             return;;
         }
         
@@ -588,11 +601,17 @@ OS_CONST static NSString *pubkeyforkeychain = @"BLLLgvLL7eoER5gPJ6eFhj4T3GPzSMOl
         
     }
     else{
-        fprintf(stderr, "file format is not suitable");
+        PrintErr("file format is not suitable");
         return;
     }
     
     NSOutputStream *streamOut = nil;
+    
+    if (type == 0) {
+        outpath = [outpath stringByAppendingPathExtension:@"gz"];
+    }
+    
+    
     streamOut = [NSOutputStream outputStreamToFileAtPath:outpath  append:NO];
     [streamOut open];
     
@@ -602,7 +621,7 @@ OS_CONST static NSString *pubkeyforkeychain = @"BLLLgvLL7eoER5gPJ6eFhj4T3GPzSMOl
         
         const unsigned char *pPrivateKey = dataPrikey.bytes;
         if (!secp256k1_ec_seckey_verify(self.ctx, pPrivateKey)) {
-            fprintf(stderr, "seckey is not availble");
+            PrintErr( "seckey is not availble");
             return ;
         }
         
@@ -610,7 +629,7 @@ OS_CONST static NSString *pubkeyforkeychain = @"BLLLgvLL7eoER5gPJ6eFhj4T3GPzSMOl
         secp256k1_pubkey ephemPubKey ;
         int r0 = secp256k1_ec_pubkey_parse(self.ctx, &ephemPubKey, dataEphermPubKey.bytes, dataEphermPubKey.length);
         if (!r0) {
-            fprintf(stderr, "no valid pubkey");
+            PrintErr( "no valid pubkey");
         }
         
         
@@ -619,25 +638,11 @@ OS_CONST static NSString *pubkeyforkeychain = @"BLLLgvLL7eoER5gPJ6eFhj4T3GPzSMOl
         /// 不需要了,重置randkey
         dataPrikey = nil;
         if (r == 0) {
-            fprintf(stderr, "pubkey is not falid");
+            PrintErr( "pubkey is not falid");
             return ;
         }
     }
-    
-    
-    
-    z_stream strm;
-    strm.total_out = 0;
-    strm.zalloc = Z_NULL;
-    strm.zfree = Z_NULL;
-    if (inflateInit2(&strm, (15+32)) != Z_OK) {
-        return;;
-    }
- 
-    // 16K chunks for expansion
-//    const int buffersize = (1 << 14) ;
-    const int gzbufferOutSize = BufferSize << 5;
-    UInt8 ungzBuffer[gzbufferOutSize];
+     
     
     
     CCCryptorRef cryptor;
@@ -661,60 +666,14 @@ OS_CONST static NSString *pubkeyforkeychain = @"BLLLgvLL7eoER5gPJ6eFhj4T3GPzSMOl
         CCHmacUpdate(&ctx, buffer, readLen);
         CCCryptorUpdate(cryptor, buffer, readLen, dataOut, dataOutAvailable, &dataOutLen);
         if (dataOutLen > 0 ) {
-            if (type == 0) {
-                strm.next_in=(Bytef *)dataOut;
-                strm.avail_in = (uInt)dataOutLen;
-                 
-                strm.next_out = ungzBuffer;
-                strm.avail_out = gzbufferOutSize;
-                int status = inflate (&strm, Z_SYNC_FLUSH);
-                uLong dataOutLen = strm.total_out -  unzipSize;
-               ;
-                unzipSize = strm.total_out;
-                if (status == Z_STREAM_END && dataOutLen > 0) {
-                    [streamOut write:ungzBuffer maxLength:dataOutLen];
-                    break;;
-                }
-                else if (status != Z_OK) {
-                    dataOutLen = strm.total_out -  unzipSize;
-                    PrintErr("file format is bad");
-                    break;;
-                }
-                else{
-                    [streamOut write:ungzBuffer maxLength:dataOutLen];
-                }
-                
-            }
-            else {
-                [streamOut write:dataOut maxLength:dataOutLen];
-            }
+            [streamOut write:dataOut maxLength:dataOutLen];
         }
         readLen = [streamIn read:buffer maxLength:BufferSize];
     }
     
     CCCryptorFinal(cryptor, dataOut, dataOutAvailable, &dataOutLen);
     if (dataOutLen > 0) {
-        if(type == 0)
-        {
-            strm.next_in=(Bytef *)dataOut;
-            strm.avail_in = (uInt)dataOutAvailable;
-            
-            strm.next_out = ungzBuffer;
-            strm.avail_out = gzbufferOutSize;
-            int status = inflate (&strm, Z_SYNC_FLUSH);
-            uLong dataOutLen = strm.total_out -  unzipSize;
-            ;
-            unzipSize = strm.total_out;
-            if (status == Z_STREAM_END && dataOutLen > 0) {
-                [streamOut write:ungzBuffer maxLength:dataOutLen];
-            }
-            else if (status != Z_OK) {
-                dataOutLen = strm.total_out -  unzipSize;
-            }
-        }
-        else{
-            [streamOut write:dataOut maxLength:dataOutLen];
-        }
+        [streamOut write:dataOut maxLength:dataOutLen];
     }
     [streamIn close];
     [streamOut close];
@@ -723,12 +682,12 @@ OS_CONST static NSString *pubkeyforkeychain = @"BLLLgvLL7eoER5gPJ6eFhj4T3GPzSMOl
     UInt8 macOut[CC_SHA256_DIGEST_LENGTH];
     CCHmacFinal(&ctx, macOut);
     if (!memcpy(macOut, dataMac.bytes, CC_SHA256_DIGEST_LENGTH)) {
-        fprintf(stderr, "mac not fit ");
+        PrintErr( "mac not fit ");
         goto  END;
     }
     
    
-     
+    printf("\noutput file:%s\n",outpath.UTF8String);
     
 END:
     free(dataOut);
@@ -800,6 +759,12 @@ END:
 
 - (void)ecc_encryptFile:(NSString *)inFilePath outPath:(NSString *)outpath pubkey:(NSString *)pubkeystring{
     inFilePath =[self dealPath:inFilePath];
+    
+    if (!outpath) {
+        outpath = [inFilePath stringByAppendingPathExtension:@"ec"];
+    }
+    
+    
     outpath =[self dealPath:outpath];
     
     NSInputStream *streamIn = [[NSInputStream alloc] initWithFileAtPath:inFilePath];
@@ -817,7 +782,7 @@ END:
         
         int r = secp256k1_ec_pubkey_parse(self.ctx, &pubkey, dataPub.bytes, dataPub.length);
         if (r == 0 ) {
-            fprintf(stderr, "pubkey is not valid");
+            PrintErr("pubkey is not valid");
             return ;
         }
          
@@ -827,7 +792,7 @@ END:
         secp256k1_pubkey randomPub;
         r = secp256k1_ec_pubkey_create(self.ctx, &randomPub, randKey);
         if (r == 0 ) {
-            fprintf(stderr, "pubkey create fail");
+            PrintErr("create pubkey fail");
             return ;
         }
         
@@ -835,7 +800,7 @@ END:
         /// 不需要了,重置randkey
         [self genSecKey:randKey];
         if (r == 0) {
-            fprintf(stderr, "pubkey is not falid");
+            PrintErr("pubkey is not falid");
             return ;
         }
         size_t len = publen;
@@ -854,7 +819,7 @@ END:
         UInt16 macLen = CC_SHA256_DIGEST_LENGTH;
         UInt16 ephemPubLen = publen;
         /// 内容没有zip
-        UInt16 Zero = 0;
+        UInt16 Zero = 1;
         
         int preLen = ivLen + macLen + ephemPubLen + 8;
         
@@ -874,18 +839,7 @@ END:
         
         macPostion = 8 + ivLen;
     }
-    z_stream strm;
-    strm.total_out = 0;
-    strm.zalloc = Z_NULL;
-    strm.zfree = Z_NULL;
     
- 
-    if (deflateInit2(&strm, Z_DEFAULT_COMPRESSION, Z_DEFLATED,
-                     (15+16), 8, Z_DEFAULT_STRATEGY) != Z_OK) {
-        return;;
-    }
- 
-    // 16K chunks for expansion
     
     CCCryptorRef cryptor;
     CCCryptorCreate(kCCEncrypt, kCCAlgorithmAES, kCCOptionPKCS7Padding, dhHash, kCCKeySizeAES256, iv, &cryptor);
@@ -898,39 +852,19 @@ END:
     CCHmacUpdate(&ctx,outPub,publen);
      
     NSInteger readDateLen = 0;
-    const int buffersize = kCCBlockSizeAES128 << 10 ;
-    const int encbuffersize = (buffersize << 4 ) + kCCBlockSizeAES128;
+    const int buffersize = kCCBlockSizeAES128 << 10;
+    const int encbuffersize = buffersize + kCCBlockSizeAES128;
     
     UInt8 *buffer = malloc(buffersize);
     UInt8 *bufferEncry = malloc(encbuffersize);
     
-    UInt8 *bufferGz = malloc(encbuffersize);
-    
-    
     readDateLen = [streamIn read:buffer maxLength:buffersize];
     size_t  encsize = 0;
-    uLong zipSize = 0;
     while (readDateLen > 0 ){
-        
-        strm.next_in = buffer;
-        strm.avail_in = readDateLen;
-        
-        strm.next_out = bufferGz;
-        strm.avail_out = encbuffersize;
-        deflate(&strm, Z_SYNC_FLUSH);
-        
-        uLong gzLen = strm.total_out - zipSize;
-        zipSize = strm.total_out;
-        if (gzLen == 0 ) {
-            readDateLen = [streamIn read:buffer maxLength:buffersize];
-            continue;
-        }
-        
-        CCCryptorUpdate(cryptor, bufferGz, gzLen, bufferEncry, encbuffersize, &encsize);
+        CCCryptorUpdate(cryptor, buffer, readDateLen, bufferEncry, encbuffersize, &encsize);
         if (encsize > 0) {
             CCHmacUpdate(&ctx, bufferEncry, encsize);
             [streamOut write:bufferEncry maxLength:encsize];
-        }else{
         }
         readDateLen = [streamIn read:buffer maxLength:buffersize];
     }
@@ -943,12 +877,11 @@ END:
     if (encsize > 0 ) {
         [streamOut write:bufferEncry maxLength:encsize];
     }
-    deflateEnd(&strm);
+    
     
     CCCryptorRelease(cryptor);
     free(bufferEncry);
     free(buffer);
-    free(bufferGz);
     arc4random_buf(dhHash, 32);
     memset(&ctx , 0, sizeof(ctx));
     [streamIn close];
@@ -963,6 +896,8 @@ END:
     fseek(fileOut, macPostion, SEEK_SET);
     fwrite(macBuffer, CC_SHA256_DIGEST_LENGTH, 1, fileOut);
     fclose(fileOut);
+    
+    printf("\noutput file:%s\n",outpath.UTF8String);
 }
 - (NSString *)dealPath:(NSString *)path{
     if ([path hasPrefix:@"/"]) {
@@ -984,12 +919,8 @@ END:
 @end
 
 
-XPC_CONSTRUCTOR static void test(){
-//    [LTEccTool shared]
-    
-    [[LTEccTool shared] ecc_encryptFile:@"/Volumes/RamDisk/sf.txt" outPath:@"/Volumes/RamDisk/sf.txt.ec" pubkey:pubkeyforkeychain];
-    
-    [[LTEccTool shared] ecc_decryptFile:@"/Volumes/RamDisk/sf.txt.ec" outPath:@"/Volumes/RamDisk/sf2.txt" secKey:seckeyforkeychain];
-}
+//XPC_CONSTRUCTOR static void test(){
+//    
+//}
 
 
