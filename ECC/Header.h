@@ -29,7 +29,8 @@ metamacro_at20( __VA_ARGS__, 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0)
 #endif
 
  
-
-#define Version "0.0.1"
+#define PrintErr(err) fprintf(stderr, ("\033[31;47m" err "\033[0m\n"))
+ 
+#define Version "0.0.3"
 
 #endif /* Header_h */

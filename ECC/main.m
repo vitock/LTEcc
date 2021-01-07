@@ -260,7 +260,7 @@ int main(int argc, const char * argv[]) {
         \nd  -prikey/s prikey -m base64ciphermsg  binary data from stdin [-f inputfilepath] [-o outpath]\
         \nr  -m msg print random art of msg\
         \ns  show saved key in keychain\n\
-        \n if [-f] [-o] is set,this will not gunzip the content,you need compress it yourself";
+        \n if e [-f] [-o] is specified,this will not zip the content,you need compress it yourself";
         ;
         NSString *help = [NSString stringWithFormat:helpfmt,Version,link];
         
@@ -269,7 +269,8 @@ int main(int argc, const char * argv[]) {
         
     }
     fflush(stdout);
-      
+    
+    
     return 0;
 }
 
