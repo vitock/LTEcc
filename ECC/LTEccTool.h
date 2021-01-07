@@ -27,6 +27,10 @@ NS_ASSUME_NONNULL_BEGIN
 - (void)saveKeyToKeyChain:(NSString *)secKey pubKey:(NSString *)pubKey;
 - (NSString *)getSecKeyInKeychain;
 - (NSString *)getPublicKeyInKeychain;
+
+- (void)ecc_encryptFile:(NSString *)inFilePath outPath:(NSString *)outpath pubkey:(NSString *)pubkeystring;
+
+- (void)ecc_decryptFile:(NSString *)inFilePath outPath:(NSString *)outpath secKey:(NSString *)pubkeystring;
 @end
 
 NS_ASSUME_NONNULL_END

@@ -22,7 +22,8 @@
 @property (nonatomic, strong)NSData *iv;
 @property (nonatomic, strong)NSData *dataEnc;
 @property (nonatomic, strong)NSData *mac;
-
+/// 0 内容经过gzip 1 内容没有经过gzip 需要程序提前自己处理
+@property (nonatomic, assign)UInt16 type;
 
 
 @end
@@ -44,7 +45,7 @@
     UInt16 ivLen = r.iv.length;
     UInt16 macLen = r.mac.length;
     UInt16 ephemPubLen = r.ephemPubkeyData.length;
-    UInt16 Zero = 0;
+    UInt16 Zero = self.type;
     
     ivLen = CFSwapInt16HostToLittle(ivLen);
     macLen = CFSwapInt16HostToLittle(macLen);
@@ -72,17 +73,23 @@
 
 - (void)parser:(NSData *)data{
     
+    UInt16 type = 0;
     UInt16 ivLen = 0;
     UInt16 macLen = 0;
     UInt16 ephermPubLen = 0;
+    
+    [data getBytes:&type  range:NSMakeRange(0, 2)];
     [data getBytes:&ivLen  range:NSMakeRange(2, 2)];
     [data getBytes:&macLen  range:NSMakeRange(4, 2)];
     [data getBytes:&ephermPubLen  range:NSMakeRange(6, 2)];
+    
+    type = CFSwapInt16HostToLittle(type);
     
     ivLen = CFSwapInt16HostToLittle(ivLen);
     macLen = CFSwapInt16HostToLittle(macLen);
     ephermPubLen = CFSwapInt16HostToLittle(ephermPubLen);
     
+    self.type = type;
     size_t idx = 8;
     self.iv = [data subdataWithRange:NSMakeRange(idx, ivLen)];
     idx += ivLen;
@@ -315,9 +322,12 @@ static int my_ecdh_hash_function(
 
 }
 
-- (NSData *)_ecc_decrypt:(NSData *)dataCipher private:(NSString *)prikey{
+- (NSData *)_ecc_decrypt:(NSData *)dataCipher private:(NSString *)prikey type:(UInt16 *) ptype{
     ECCEncResult *r = [ECCEncResult new];
     [r parser:dataCipher];
+    if(ptype){
+        *ptype = r.type;
+    }
     
     
     
@@ -354,7 +364,11 @@ static int my_ecdh_hash_function(
     NSData *dataMac = [[NSData alloc] initWithBytes:macOut length:CC_SHA256_DIGEST_LENGTH];
     
     
+    
     if(![dataMac isEqualToData:r.mac]){
+        MyLogFunc(@"\ncaculted: %@\nmacOrigin: %@",[self bytesToBase64:dataMac.bytes lenOfByte:dataMac.length],[self bytesToBase64:r.mac.bytes lenOfByte:r.mac.length]);
+        
+        
         fprintf(stderr, "mac not fit\n");
         return nil;
     }
@@ -383,9 +397,14 @@ static int my_ecdh_hash_function(
 
 
 - (NSData *)ecc_decrypt:(NSData *)dataCipher private:(NSString *)prikey{
-    NSData *data = [self _ecc_decrypt:dataCipher private:prikey];
-    NSData *data2 = [data gzipInflate];
-    return  data2;
+    UInt16 type = 0;
+    NSData *data = [self _ecc_decrypt:dataCipher private:prikey type:&type];
+    if (type == 0) {
+        NSData *data2 = [data gzipInflate];
+        return  data2;
+    }
+    return data;
+    
 }
 
 
@@ -520,18 +539,255 @@ OS_CONST static NSString *pubkeyforkeychain = @"BLLLgvLL7eoER5gPJ6eFhj4T3GPzSMOl
     }
      
 }
+
+- (void)ecc_decryptFile:(NSString *)inFilePath outPath:(NSString *)outpath secKey:(NSString *)seckey{
+    NSInputStream *streamIn = [[NSInputStream alloc] initWithFileAtPath:inFilePath];
+    
+    NSOutputStream *streamOut = [NSOutputStream outputStreamToFileAtPath:outpath  append:NO];
+    [streamOut open];
+    [streamIn open];
+    
+    const size_t BufferSize = kCCBlockSizeAES128 << 10 ;
+    uint8_t *buffer = malloc(BufferSize);
+    size_t readLen = 0;
+    readLen = [streamIn read:buffer maxLength:8];
+    
+    UInt16 type = 0;
+    NSData *dataIv = nil;
+    NSData *dataEphermPubKey = nil;
+    NSData *dataMac = nil;
+    if(readLen == 8){
+        
+        UInt16 ivLen = 0;
+        UInt16 macLen = 0;
+        UInt16 ephermPubLen = 0;
+        NSData *data = [[NSData alloc] initWithBytesNoCopy:buffer length:readLen deallocator:NULL];
+        
+        [data getBytes:&type  range:NSMakeRange(0, 2)];
+        [data getBytes:&ivLen  range:NSMakeRange(2, 2)];
+        [data getBytes:&macLen  range:NSMakeRange(4, 2)];
+        [data getBytes:&ephermPubLen  range:NSMakeRange(6, 2)];
+        type = CFSwapInt16HostToLittle(type);
+        ivLen = CFSwapInt16HostToLittle(ivLen);
+        macLen = CFSwapInt16HostToLittle(macLen);
+        ephermPubLen = CFSwapInt16HostToLittle(ephermPubLen);
+        
+        NSUInteger len1 = ivLen + macLen + ephermPubLen;
+        NSUInteger len2 = [streamIn read:buffer maxLength:len1];
+        if (len1 != len2) {
+            fprintf(stderr, "file format is not suitable,no iv ,mac or ephermPubkey");
+            return;;
+        }
+        
+        dataIv = [[NSData alloc] initWithBytes:buffer length:ivLen];
+        dataMac = [[NSData alloc] initWithBytes:buffer + ivLen length:macLen];
+        dataEphermPubKey = [[NSData alloc] initWithBytes:buffer + ivLen + macLen length:ephermPubLen];
+        
+    }
+    else{
+        fprintf(stderr, "file format is not suitable");
+        return;
+    }
+    
+    UInt8 dhHash[64];
+    {
+        NSData *dataPrikey = [self base64ToData:seckey];
+
+        const unsigned char *pPrivateKey = dataPrikey.bytes;
+        if (!secp256k1_ec_seckey_verify(self.ctx, pPrivateKey)) {
+            fprintf(stderr, "seckey is not availble");
+            return ;
+        }
+        
+        
+        secp256k1_pubkey ephemPubKey ;
+        int r0 = secp256k1_ec_pubkey_parse(self.ctx, &ephemPubKey, dataEphermPubKey.bytes, dataEphermPubKey.length);
+        if (!r0) {
+            fprintf(stderr, "no valid pubkey");
+        }
+ 
+          
+        
+        int r = secp256k1_ecdh(self.ctx, dhHash, &ephemPubKey, pPrivateKey, my_ecdh_hash_function, NULL);
+        /// 不需要了,重置randkey
+        dataPrikey = nil;
+        if (r == 0) {
+            fprintf(stderr, "pubkey is not falid");
+            return ;
+        }
+    }
+    MyLogFunc(@"dh:%@",[self bytesToBase64:dhHash lenOfByte:64]);
+    
+     
+    
+    
+    free(buffer);
+}
+
+- (void)ecc_encryptFile:(NSString *)inFilePath outPath:(NSString *)outpath pubkey:(NSString *)pubkeystring{
+    NSInputStream *streamIn = [[NSInputStream alloc] initWithFileAtPath:inFilePath];
+    NSOutputStream *streamOut = [NSOutputStream outputStreamToFileAtPath:outpath  append:NO];
+    [streamOut open];
+    [streamIn open];
+     
+    UInt8 dhHash[64];
+    const  size_t publen=65;
+    
+    UInt8 outPub[publen];
+    {
+        secp256k1_pubkey pubkey ;
+        NSData *dataPub = [LTEccTool base64DeCode:pubkeystring];
+        
+        int r = secp256k1_ec_pubkey_parse(self.ctx, &pubkey, dataPub.bytes, dataPub.length);
+        if (r == 0 ) {
+            fprintf(stderr, "pubkey is not valid");
+            return ;
+        }
+         
+        unsigned char randKey[32];
+        [self genSecKey:randKey];
+        
+        secp256k1_pubkey randomPub;
+        r = secp256k1_ec_pubkey_create(self.ctx, &randomPub, randKey);
+        if (r == 0 ) {
+            fprintf(stderr, "pubkey create fail");
+            return ;
+        }
+        
+        r = secp256k1_ecdh(self.ctx, dhHash, &pubkey, randKey, my_ecdh_hash_function, NULL);
+        /// 不需要了,重置randkey
+        [self genSecKey:randKey];
+        if (r == 0) {
+            fprintf(stderr, "pubkey is not falid");
+            return ;
+        }
+        size_t len = publen;
+        secp256k1_ec_pubkey_serialize(self.ctx, outPub, &len,&randomPub, SECP256K1_EC_UNCOMPRESSED);
+         
+    }
+    
+    MyLogFunc(@"dh:%@",[self bytesToBase64:dhHash lenOfByte:64]);
+    
+    
+    
+    
+    int macPostion = 0;
+    UInt8 macBuffer[CC_SHA256_DIGEST_LENGTH];
+    memset(macBuffer, 0, CC_SHA256_DIGEST_LENGTH);
+    uint8_t iv[kCCBlockSizeAES128] ;
+    arc4random_buf(iv , kCCBlockSizeAES128);
+    {
+        UInt16 ivLen = kCCBlockSizeAES128;
+        UInt16 macLen = CC_SHA256_DIGEST_LENGTH;
+        UInt16 ephemPubLen = publen;
+        /// 内容没有zip.
+        UInt16 Zero = 1;
+        
+        int preLen = ivLen + macLen + ephemPubLen + 8;
+        
+        ivLen = CFSwapInt16HostToLittle(ivLen);
+        macLen = CFSwapInt16HostToLittle(macLen);
+        ephemPubLen = CFSwapInt16HostToLittle(ephemPubLen);
+        NSMutableData *dataPre = [[NSMutableData alloc] initWithCapacity:preLen ];
+        [dataPre appendBytes:&Zero length:2];
+        [dataPre appendBytes:&ivLen length:2];
+        [dataPre appendBytes:&macLen length:2];
+        [dataPre appendBytes:&ephemPubLen length:2];
+        
+        [streamOut write:dataPre.bytes maxLength:dataPre.length];
+        [streamOut write:iv maxLength:ivLen];
+        [streamOut write:macBuffer maxLength:macLen];
+        [streamOut write:outPub maxLength:ephemPubLen];
+        
+        macPostion = 8 + ivLen;
+    }
+    
+    CCCryptorRef cryptor;
+    CCCryptorCreate(kCCEncrypt, kCCAlgorithmAES, kCCOptionPKCS7Padding, dhHash, kCCKeySizeAES256, iv, &cryptor);
+    
+    
+    // iv empherpubkey dataenc
+    CCHmacContext ctx;
+    CCHmacInit(&ctx, kCCHmacAlgSHA256 , dhHash+32, 32);
+    CCHmacUpdate(&ctx,iv,kCCBlockSizeAES128);
+    CCHmacUpdate(&ctx,outPub,publen);
+     
+    NSInteger readDateLen = 0;
+    const int buffersize = kCCBlockSizeAES128 << 10 ;
+    const int encbuffersize = buffersize + kCCBlockSizeAES128;
+    
+    UInt8 *buffer = malloc(buffersize);
+    UInt8 *bufferEncry = malloc(buffersize + kCCBlockSizeAES128);
+    
+    
+    readDateLen = [streamIn read:buffer maxLength:buffersize];
+    size_t  encsize = 0;
+    while (readDateLen > 0 ){
+        CCCryptorUpdate(cryptor, buffer, readDateLen, bufferEncry, encbuffersize, &encsize);
+        if (encsize > 0) {
+            CCHmacUpdate(&ctx, bufferEncry, encsize);
+            [streamOut write:bufferEncry maxLength:encsize];
+        }
+        
+        readDateLen = [streamIn read:buffer maxLength:buffersize];
+    }
+    
+    CCCryptorFinal(cryptor, bufferEncry, encbuffersize, &encsize);
+    CCHmacUpdate(&ctx,bufferEncry,encsize);
+    CCHmacFinal(&ctx, macBuffer);
+    [streamOut write:bufferEncry maxLength:encsize];
+    CCCryptorRelease(cryptor);
+    free(bufferEncry);
+    free(buffer);
+    arc4random_buf(dhHash, 32);
+    memset(&ctx , 0, sizeof(ctx));
+    [streamIn close];
+    [streamOut close];
+    
+    /// write mac to file head
+    FILE *fileOut = NULL;
+    if (outpath.length) {
+        fileOut = fopen(outpath.UTF8String, "r+b");
+    }
+    
+    fseek(fileOut, macPostion, SEEK_SET);
+    fwrite(macBuffer, CC_SHA256_DIGEST_LENGTH, 1, fileOut);
+    fclose(fileOut);
+}
+
  
 @end
 
-//
-//XPC_CONSTRUCTOR static void test(){
-//
-//    NSDictionary *dicKeyPair = [[LTEccTool shared] genKeyPair:nil];
-//
-//    NSString *str =  [[LTEccTool shared] getSecKeyInKeychain];
-//    NSString *str2 =  [[LTEccTool shared] getPublicKeyInKeychain];
-//
-//    MyLogFunc(@"%@\n%@",str,str2);
-//
-//}
+
+XPC_CONSTRUCTOR static void test(){
+    
+     
+    
+//    NSData *d =  [[NSData alloc] initWithBytesNoCopy:z  length:2];
+    
+//    MyLogFunc(@"\n%p \n %p",z ,d.bytes);
+    
+    
+    [[LTEccTool shared] ecc_encryptFile:@"/Users/liw003/Documents/ss.js"  outPath:@"/Users/liw003/Documents/ss.js.ec" pubkey:pubkeyforkeychain];
+    
+    [[LTEccTool shared] ecc_decryptFile:@"/Users/liw003/Documents/ss.js.ec"  outPath:@"/Users/liw003/Documents/ss.2.js" secKey:seckeyforkeychain];
+    
+    
+     
+    
+    
+    
+    char cwd[PATH_MAX];
+       if (getcwd(cwd, sizeof(cwd)) != NULL) {
+           printf("Current working dir: %s\n", cwd);
+       } else {
+           perror("getcwd() error");
+           
+       }
+    NSString *path = @"/a/b/../c/d/.././/fadf";
+
+    
+    MyLogFunc(@"\npath\n%@\n\n",path.stringByStandardizingPath);
+}
+
 
