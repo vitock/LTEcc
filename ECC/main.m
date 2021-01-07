@@ -170,6 +170,19 @@ int main(int argc, const char * argv[]) {
         
         NSString *strmsg = dicArg[@"m"];
         NSData *dataMsg = [strmsg dataUsingEncoding:NSUTF8StringEncoding];
+        
+        if (!strmsg) {
+            NSString *inpath = dicArg[@"f"];
+            NSString *outpath = dicArg[@"o"];
+            if (inpath.length) {
+                if (outpath.length == 0 ) {
+                    outpath = @"/dev/stdout";
+                }
+                [[LTEccTool shared] ecc_encryptFile:inpath outPath:outpath pubkey:strPubKey];
+                return 0;
+            }
+        }
+        
         if (!strmsg) {
             dataMsg =  readStdIn();
         }
@@ -189,6 +202,17 @@ int main(int argc, const char * argv[]) {
             return 1;
         }
         NSString *strmsg = dicArg[@"m"];
+        if (!strmsg) {
+            NSString *inpath = dicArg[@"f"];
+            NSString *outpath = dicArg[@"o"];
+            if (inpath.length) {
+                if (outpath.length == 0 ) {
+                    outpath = @"/dev/stdout";
+                }
+                [[LTEccTool shared] ecc_decryptFile:inpath outPath:outpath secKey:strSecKey];
+                return 0;
+            }
+        }
         
         NSData *dataMsg = nil;
         if (!strmsg) {
@@ -232,11 +256,11 @@ int main(int argc, const char * argv[]) {
         
         
         const NSString *helpfmt = @"lwEcc %s \n%@\ng [-prikey/secKey/s prikey]  generate keypair  [-S] saveto key chain\
-        \ne  -pubkey/p pubkey -m msg\
-        \nd  -prikey/s prikey -m base64ciphermsg or binary data from stdin\
+        \ne  -pubkey/p pubkey -m msg [-f inputfilepath] [-o outpath]\
+        \nd  -prikey/s prikey -m base64ciphermsg  binary data from stdin [-f inputfilepath] [-o outpath]\
         \nr  -m msg print random art of msg\
-        \ns  show saved key in keychain";
-        
+        \ns  show saved key in keychain\n\
+        \n if [-f] [-o] is set,this will not gunzip the content,you need compress it yourself";
         ;
         NSString *help = [NSString stringWithFormat:helpfmt,Version,link];
         

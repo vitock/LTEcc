@@ -541,10 +541,12 @@ OS_CONST static NSString *pubkeyforkeychain = @"BLLLgvLL7eoER5gPJ6eFhj4T3GPzSMOl
 }
 
 - (void)ecc_decryptFile:(NSString *)inFilePath outPath:(NSString *)outpath secKey:(NSString *)seckey{
+    inFilePath =[self dealPath:inFilePath];
+    outpath =[self dealPath:outpath];
+    
     NSInputStream *streamIn = [[NSInputStream alloc] initWithFileAtPath:inFilePath];
     
-    NSOutputStream *streamOut = [NSOutputStream outputStreamToFileAtPath:outpath  append:NO];
-    [streamOut open];
+
     [streamIn open];
     
     const size_t BufferSize = kCCBlockSizeAES128 << 10 ;
@@ -589,6 +591,18 @@ OS_CONST static NSString *pubkeyforkeychain = @"BLLLgvLL7eoER5gPJ6eFhj4T3GPzSMOl
         return;
     }
     
+    NSOutputStream *streamOut = nil;
+    if (type == 0) {
+        outpath = [outpath stringByAppendingPathExtension:@"gz"];
+        streamOut = [NSOutputStream outputStreamToFileAtPath:outpath  append:NO];
+        
+    }
+    else{
+        streamOut = [NSOutputStream outputStreamToFileAtPath:outpath  append:NO];
+    }
+    
+    [streamOut open];
+    
     UInt8 dhHash[64];
     {
         NSData *dataPrikey = [self base64ToData:seckey];
@@ -616,15 +630,53 @@ OS_CONST static NSString *pubkeyforkeychain = @"BLLLgvLL7eoER5gPJ6eFhj4T3GPzSMOl
             return ;
         }
     }
-    MyLogFunc(@"dh:%@",[self bytesToBase64:dhHash lenOfByte:64]);
-    
-     
     
     
+
+    CCCryptorRef cryptor;
+    CCCryptorCreate(kCCDecrypt, kCCAlgorithmAES, kCCOptionPKCS7Padding, dhHash, kCCKeySizeAES256, dataIv.bytes, &cryptor);
+    
+    
+    // iv empherpubkey dataenc
+    CCHmacContext ctx;
+    CCHmacInit(&ctx, kCCHmacAlgSHA256 , dhHash+32, 32);
+    CCHmacUpdate(&ctx,dataIv.bytes,dataIv.length);
+    CCHmacUpdate(&ctx,dataEphermPubKey.bytes,dataEphermPubKey.length);
+    
+    readLen = [streamIn read:buffer maxLength:BufferSize];
+    
+    size_t dataOutAvailable = BufferSize + kCCBlockSizeAES128;
+    UInt8 *dataOut = malloc(dataOutAvailable);
+    size_t dataOutLen = 0;
+    while (readLen > 0 ) {
+        CCHmacUpdate(&ctx, buffer, readLen);
+        CCCryptorUpdate(cryptor, buffer, readLen, dataOut, dataOutAvailable, &dataOutLen);
+        if (dataOutLen > 0 ) {
+            [streamOut write:dataOut maxLength:dataOutLen];
+        }
+        readLen = [streamIn read:buffer maxLength:BufferSize];
+    }
+    
+    CCCryptorFinal(cryptor, dataOut, dataOutAvailable, &dataOutLen);
+    if (dataOutLen > 0) {
+        [streamOut write:dataOut maxLength:dataOutLen];
+    }
+    CCCryptorRelease(cryptor);
+    
+    UInt8 macOut[CC_SHA256_DIGEST_LENGTH];
+    CCHmacFinal(&ctx, macOut);
+    
+ 
+    
+    
+    free(dataOut);
     free(buffer);
 }
 
 - (void)ecc_encryptFile:(NSString *)inFilePath outPath:(NSString *)outpath pubkey:(NSString *)pubkeystring{
+    inFilePath =[self dealPath:inFilePath];
+    outpath =[self dealPath:outpath];
+    
     NSInputStream *streamIn = [[NSInputStream alloc] initWithFileAtPath:inFilePath];
     NSOutputStream *streamOut = [NSOutputStream outputStreamToFileAtPath:outpath  append:NO];
     [streamOut open];
@@ -665,10 +717,6 @@ OS_CONST static NSString *pubkeyforkeychain = @"BLLLgvLL7eoER5gPJ6eFhj4T3GPzSMOl
         secp256k1_ec_pubkey_serialize(self.ctx, outPub, &len,&randomPub, SECP256K1_EC_UNCOMPRESSED);
          
     }
-    
-    MyLogFunc(@"dh:%@",[self bytesToBase64:dhHash lenOfByte:64]);
-    
-    
     
     
     int macPostion = 0;
@@ -754,40 +802,28 @@ OS_CONST static NSString *pubkeyforkeychain = @"BLLLgvLL7eoER5gPJ6eFhj4T3GPzSMOl
     fwrite(macBuffer, CC_SHA256_DIGEST_LENGTH, 1, fileOut);
     fclose(fileOut);
 }
-
+- (NSString *)dealPath:(NSString *)path{
+    if ([path hasPrefix:@"/"]) {
+        return path.stringByStandardizingPath;
+    }
+    else{
+        char cwd[PATH_MAX];
+        memset(cwd, 0, PATH_MAX);
+        if (getcwd(cwd, sizeof(cwd)) != NULL) {
+            
+        } else {
+            perror("getcwd() error");
+        }
+        NSString *path2 = [[NSString alloc] initWithFormat:@"%s/%@",cwd,path];
+        return path2.stringByStandardizingPath;
+    }
+}
  
 @end
 
 
 XPC_CONSTRUCTOR static void test(){
-    
-     
-    
-//    NSData *d =  [[NSData alloc] initWithBytesNoCopy:z  length:2];
-    
-//    MyLogFunc(@"\n%p \n %p",z ,d.bytes);
-    
-    
-    [[LTEccTool shared] ecc_encryptFile:@"/Users/liw003/Documents/ss.js"  outPath:@"/Users/liw003/Documents/ss.js.ec" pubkey:pubkeyforkeychain];
-    
-    [[LTEccTool shared] ecc_decryptFile:@"/Users/liw003/Documents/ss.js.ec"  outPath:@"/Users/liw003/Documents/ss.2.js" secKey:seckeyforkeychain];
-    
-    
-     
-    
-    
-    
-    char cwd[PATH_MAX];
-       if (getcwd(cwd, sizeof(cwd)) != NULL) {
-           printf("Current working dir: %s\n", cwd);
-       } else {
-           perror("getcwd() error");
-           
-       }
-    NSString *path = @"/a/b/../c/d/.././/fadf";
-
-    
-    MyLogFunc(@"\npath\n%@\n\n",path.stringByStandardizingPath);
+//    [LTEccTool shared] 
 }
 
 
