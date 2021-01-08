@@ -89,15 +89,30 @@ int main(int argc, const char * argv[]) {
             NSString *strKey = [[NSString alloc] initWithUTF8String:argv[i]+1];
             i += 1;
             if(i < argc && strKey.length){
+                NSRange rg = NSMakeRange(0, 1);
                 NSString *strValue = [[NSString alloc] initWithUTF8String:argv[i]];
-                dicArg[strKey] = strValue;
+//                dicArg[strKey] = strValue;
+                unsigned int len = strKey.length;
+                while (rg.location < len) {
+                    NSString *key = [strKey substringWithRange:rg];
+                    if (rg.location == len - 1) {
+                        dicArg[key] = strValue;
+                    }
+                    else{
+                        dicArg[key] = @"1";
+                    }
+                    
+                    rg.location += 1;
+                    
+                }
             }else{
                 dicArg[strKey] = @"1";
             }
 
         }
     }
-    
+    BOOL gzip = ![dicArg[@"z"] isEqualToString:@"0"];
+    MyLogFunc(@"input %@",dicArg);
 
     NSString *strSecKey = dicArg[@"s"];
     if (!strSecKey) {
@@ -175,7 +190,7 @@ int main(int argc, const char * argv[]) {
             NSString *inpath = dicArg[@"f"];
             NSString *outpath = dicArg[@"o"];
             if (inpath.length) {
-                [[LTEccTool shared] ecc_encryptFile:inpath outPath:outpath pubkey:strPubKey];
+                [[LTEccTool shared] ecc_encryptFile:inpath outPath:outpath pubkey:strPubKey gzip:gzip];
                 return 0;
             }
         }
@@ -203,7 +218,7 @@ int main(int argc, const char * argv[]) {
             NSString *inpath = dicArg[@"f"];
             if (inpath.length) {
                 NSString *outpath = dicArg[@"o"];
-                [[LTEccTool shared] ecc_decryptFile:inpath outPath:outpath secKey:strSecKey];
+                [[LTEccTool shared] ecc_decryptFile:inpath outPath:outpath secKey:strSecKey gzip:gzip];
                 return 0;
             }
         }
@@ -255,7 +270,8 @@ int main(int argc, const char * argv[]) {
         \nr  -m msg print random art of msg\
         \ns  show saved key in keychain\n\
         \nif e [-f] is specified,this will not zip the content,you need compress it yourself\
-        \n[-o]  only works when -f is sepecified";
+        \n[-o]  only works when -f is sepecified\
+        \n-z set 0 if you dont want gzip  ";
         ;
         NSString *help = [NSString stringWithFormat:helpfmt,Version,link];
         

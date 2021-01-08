@@ -545,7 +545,7 @@ OS_CONST static NSString *pubkeyforkeychain = @"BLLLgvLL7eoER5gPJ6eFhj4T3GPzSMOl
      
 }
 
-- (void)ecc_decryptFile:(NSString *)inFilePath outPath:(NSString *)outpath secKey:(NSString *)seckey{
+- (void)ecc_decryptFile:(NSString *)inFilePath outPath:(NSString *)outpath secKey:(NSString *)seckey gzip:(BOOL) gzip{
     inFilePath =[self dealPath:inFilePath];
     
     if (!outpath) {
@@ -605,12 +605,24 @@ OS_CONST static NSString *pubkeyforkeychain = @"BLLLgvLL7eoER5gPJ6eFhj4T3GPzSMOl
         return;
     }
     
+    
+    NSString *tmpFile = nil;
     NSOutputStream *streamOut = nil;
-    
+    NSString *realOutPath = outpath;
     if (type == 0) {
-        outpath = [outpath stringByAppendingPathExtension:@"gz"];
+        if (gzip) {
+            
+            tmpFile = [NSString stringWithFormat:@"%@.%x.gz",outpath,arc4random()];
+            outpath = tmpFile;
+        }
+        else{
+            if (![outpath hasSuffix:@".gz"]) {
+                outpath = [outpath stringByAppendingPathExtension:@"gz"];
+                realOutPath = outpath;
+            }
+        }
+        
     }
-    
     
     streamOut = [NSOutputStream outputStreamToFileAtPath:outpath  append:NO];
     [streamOut open];
@@ -687,11 +699,18 @@ OS_CONST static NSString *pubkeyforkeychain = @"BLLLgvLL7eoER5gPJ6eFhj4T3GPzSMOl
     }
     
    
-    printf("\noutput file:%s\n",outpath.UTF8String);
+    printf("\noutput file:%s\n",realOutPath.UTF8String);
     
 END:
     free(dataOut);
     free(buffer);
+    
+    
+    if (tmpFile && gzip) {
+        NSString *strCmd = [NSString stringWithFormat:@"gzip -dc %@ > %@",tmpFile,realOutPath];
+        system(strCmd.UTF8String);
+        [[NSFileManager defaultManager] removeItemAtPath:tmpFile error:nil];
+    }
 }
 
 - (void)gunzipFile:(NSString *)inFilePath outpath:(NSString *)outpath{
@@ -757,11 +776,22 @@ END:
     
 }
 
-- (void)ecc_encryptFile:(NSString *)inFilePath outPath:(NSString *)outpath pubkey:(NSString *)pubkeystring{
+- (void)ecc_encryptFile:(NSString *)inFilePath outPath:(NSString *)outpath pubkey:(NSString *)pubkeystring gzip:(BOOL) gzip{
     inFilePath =[self dealPath:inFilePath];
+    NSString *strOriInputPath = inFilePath;
+    NSString *strziptmp = nil;
+    if (gzip) {
+        strziptmp = [inFilePath stringByDeletingLastPathComponent];
+        strziptmp = [NSString stringWithFormat:@"%@/%x.gz",strziptmp, (1 << 10) +  arc4random()];
+        NSString *strcmp= [NSString stringWithFormat:@"gzip -c %@ >  %@" ,inFilePath,strziptmp];
+        system([strcmp UTF8String]);
+        inFilePath = strziptmp;
+        MyLogFunc(@"%@",strziptmp);
+    }
+    
     
     if (!outpath) {
-        outpath = [inFilePath stringByAppendingPathExtension:@"ec"];
+        outpath = [strOriInputPath stringByAppendingPathExtension:@"ec"];
     }
     
     
@@ -819,7 +849,7 @@ END:
         UInt16 macLen = CC_SHA256_DIGEST_LENGTH;
         UInt16 ephemPubLen = publen;
         /// 内容没有zip
-        UInt16 Zero = 1;
+        UInt16 Zero = gzip ? 0 : 1;
         
         int preLen = ivLen + macLen + ephemPubLen + 8;
         
@@ -897,7 +927,35 @@ END:
     fwrite(macBuffer, CC_SHA256_DIGEST_LENGTH, 1, fileOut);
     fclose(fileOut);
     
-    printf("\noutput file:%s\n",outpath.UTF8String);
+    if (strziptmp) {
+        
+        long long filesize = [[[NSFileManager defaultManager] attributesOfItemAtPath:strziptmp error:nil] fileSize];
+        
+        NSOutputStream *removeStream = [NSOutputStream outputStreamToFileAtPath:strziptmp append:NO];
+        [removeStream open];
+        
+        const int removeBfs = 1 << 9;
+        uint8_t removebuffer[removeBfs];
+        arc4random_buf(removebuffer, removeBfs);
+        NSInteger l = 0;
+        NSInteger r = 0;
+        while (l < filesize ) {
+            r = [removeStream write:removebuffer maxLength:removeBfs];
+            if (r > 0 ) {
+                l += r;
+            }
+            else{
+                PrintErr("remove error");
+                break;;
+            }
+        }
+        [removeStream  close];
+        [[NSFileManager defaultManager] removeItemAtPath:strziptmp error:nil];
+    }
+    
+    
+    printf("\noutput file:\n%s\n",outpath.UTF8String);
+    
 }
 - (NSString *)dealPath:(NSString *)path{
     if ([path hasPrefix:@"/"]) {
@@ -919,8 +977,7 @@ END:
 @end
 
 
-//XPC_CONSTRUCTOR static void test(){
-//    
-//}
+XPC_CONSTRUCTOR static void test(){
+}
 
 
