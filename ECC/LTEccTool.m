@@ -545,15 +545,22 @@ OS_CONST static NSString *pubkeyforkeychain = @"BLLLgvLL7eoER5gPJ6eFhj4T3GPzSMOl
      
 }
 
-- (NSString *)dealOutPath:(NSString *)outpath inpath:(NSString *)inpath{
+- (NSString *)dealOutPath:(NSString *)outpath inpath:(NSString *)inpath isEncrypt:(BOOL)enc{
     BOOL isDirectory = NO;
     BOOL isExesit = [[NSFileManager defaultManager] fileExistsAtPath:outpath isDirectory:&isDirectory];
     
     if (isExesit && isDirectory) {
         NSString *strName = [inpath lastPathComponent];
+        if (enc) {
+            strName = [strName stringByAppendingPathExtension:@"ec"];
+        }
+        else{
+            if ([inpath hasSuffix:@".ec"]) {
+                strName =  [strName stringByDeletingPathExtension];
+            }
+        }
         outpath = [outpath stringByAppendingPathComponent:strName];
-        
-        return [self dealOutPath:outpath inpath:inpath];
+        return [self dealOutPath:outpath inpath:inpath isEncrypt:enc];
     }
     else if(isExesit){
         NSString *path2 = [outpath stringByDeletingLastPathComponent];
@@ -590,7 +597,7 @@ OS_CONST static NSString *pubkeyforkeychain = @"BLLLgvLL7eoER5gPJ6eFhj4T3GPzSMOl
     outpath =[self dealPath:outpath];
     
     
-    outpath = [self dealOutPath:outpath inpath:inFilePath];
+    outpath = [self dealOutPath:outpath inpath:inFilePath isEncrypt:NO];
     
     NSInputStream *streamIn = [[NSInputStream alloc] initWithFileAtPath:inFilePath];
     [streamIn open];
@@ -818,7 +825,7 @@ END:
         NSString *strcmp= [NSString stringWithFormat:@"gzip -c %@ >  %@" ,inFilePath,strziptmp];
         system([strcmp UTF8String]);
         inFilePath = strziptmp;
-        MyLogFunc(@"%@",strziptmp);
+        
     }
     
     
@@ -826,9 +833,8 @@ END:
         outpath = [strOriInputPath stringByAppendingPathExtension:@"ec"];
     }
     
-    
     outpath =[self dealPath:outpath];
-    outpath = [self dealOutPath:outpath inpath:strOriInputPath];
+    outpath = [self dealOutPath:outpath inpath:strOriInputPath isEncrypt:YES];
     
     NSInputStream *streamIn = [[NSInputStream alloc] initWithFileAtPath:inFilePath];
     NSOutputStream *streamOut = [NSOutputStream outputStreamToFileAtPath:outpath  append:NO];
