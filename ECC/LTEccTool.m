@@ -443,7 +443,7 @@ OS_CONST static NSString *pubkeyforkeychain = @"BLLLgvLL7eoER5gPJ6eFhj4T3GPzSMOl
 - (NSString *)getPublicKeyInKeychain{
     NSMutableDictionary *query = [NSMutableDictionary dictionaryWithObjectsAndKeys:
             (id)kSecClassGenericPassword,(id)kSecClass,
-            @"vitock.ecc.seckey.seckeys", (id)kSecAttrService,
+            @"vitock.ecc.publickey", (id)kSecAttrService,
             @"e46c6231b528cd74e81570e0409eac2a", (id)kSecAttrAccount,
             (id)kSecAttrAccessibleAfterFirstUnlock,(id)kSecAttrAccessible,
             nil];
@@ -474,7 +474,7 @@ OS_CONST static NSString *pubkeyforkeychain = @"BLLLgvLL7eoER5gPJ6eFhj4T3GPzSMOl
 - (NSString *)getSecKeyInKeychain{
     NSMutableDictionary *query = [NSMutableDictionary dictionaryWithObjectsAndKeys:
             (id)kSecClassGenericPassword,(id)kSecClass,
-            @"vitock.ecc.seckey.seckeys", (id)kSecAttrService,
+            @"vitock.ecc.privatekey", (id)kSecAttrService,
             @"bd454dc28bdd8ffda5c775185ccc9814", (id)kSecAttrAccount,
             (id)kSecAttrAccessibleAfterFirstUnlock,(id)kSecAttrAccessible,
             nil];
@@ -508,7 +508,7 @@ OS_CONST static NSString *pubkeyforkeychain = @"BLLLgvLL7eoER5gPJ6eFhj4T3GPzSMOl
          
         NSMutableDictionary *query = [NSMutableDictionary dictionaryWithObjectsAndKeys:
                 (id)kSecClassGenericPassword,(id)kSecClass,
-                @"vitock.ecc.seckey.seckeys", (id)kSecAttrService,
+                @"vitock.ecc.privatekey", (id)kSecAttrService,
                 @"bd454dc28bdd8ffda5c775185ccc9814", (id)kSecAttrAccount,
                 (id)kSecAttrAccessibleAfterFirstUnlock,(id)kSecAttrAccessible,
                 nil];
@@ -529,7 +529,7 @@ OS_CONST static NSString *pubkeyforkeychain = @"BLLLgvLL7eoER5gPJ6eFhj4T3GPzSMOl
         
         NSMutableDictionary *query = [NSMutableDictionary dictionaryWithObjectsAndKeys:
                 (id)kSecClassGenericPassword,(id)kSecClass,
-                @"vitock.ecc.seckey.seckeys", (id)kSecAttrService,
+                @"vitock.ecc.publickey", (id)kSecAttrService,
                 @"e46c6231b528cd74e81570e0409eac2a", (id)kSecAttrAccount,
                 (id)kSecAttrAccessibleAfterFirstUnlock,(id)kSecAttrAccessible,
                 nil];
