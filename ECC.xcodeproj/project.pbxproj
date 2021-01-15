@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		C42B4BBF258CBCF300C0EE5B /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = C42B4BBE258CBCF300C0EE5B /* main.m */; };
 		C42B4BC8258CBDD900C0EE5B /* libsecp256k1.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C42B4BC7258CBDD900C0EE5B /* libsecp256k1.a */; };
+		C445483725B1B01E0012CFE1 /* SSKeychain.m in Sources */ = {isa = PBXBuildFile; fileRef = C445483625B1B01E0012CFE1 /* SSKeychain.m */; };
 		C45CFC9A25A3FB9E00FB7AE0 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C45CFC9925A3FB9E00FB7AE0 /* Security.framework */; };
 		C4B65EA825906E5300B1437A /* LTEccTool.m in Sources */ = {isa = PBXBuildFile; fileRef = C4B65EA725906E5300B1437A /* LTEccTool.m */; };
 		C4B65EAC25909EDD00B1437A /* NSData+Compression.m in Sources */ = {isa = PBXBuildFile; fileRef = C4B65EAB25909EDD00B1437A /* NSData+Compression.m */; };
@@ -39,6 +40,8 @@
 		C42B4BCD258CC0C400C0EE5B /* secp256k1_extrakeys.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = secp256k1_extrakeys.h; sourceTree = "<group>"; };
 		C42B4BCE258CC0C400C0EE5B /* secp256k1_preallocated.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = secp256k1_preallocated.h; sourceTree = "<group>"; };
 		C42B4BCF258CC0C400C0EE5B /* secp256k1.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = secp256k1.h; sourceTree = "<group>"; };
+		C445483525B1B01E0012CFE1 /* SSKeychain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SSKeychain.h; sourceTree = "<group>"; };
+		C445483625B1B01E0012CFE1 /* SSKeychain.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SSKeychain.m; sourceTree = "<group>"; };
 		C45CFC9925A3FB9E00FB7AE0 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
 		C4B65EA625906E5300B1437A /* LTEccTool.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LTEccTool.h; sourceTree = "<group>"; };
 		C4B65EA725906E5300B1437A /* LTEccTool.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LTEccTool.m; sourceTree = "<group>"; };
@@ -85,6 +88,8 @@
 			children = (
 				C42B4BC9258CC0C400C0EE5B /* include */,
 				C42B4BBE258CBCF300C0EE5B /* main.m */,
+				C445483525B1B01E0012CFE1 /* SSKeychain.h */,
+				C445483625B1B01E0012CFE1 /* SSKeychain.m */,
 				C4B65EBE2594223500B1437A /* base64.h */,
 				C4B65EBF2594223500B1437A /* base64.c */,
 				C4B65EB325935BFD00B1437A /* randomart.h */,
@@ -202,6 +207,7 @@
 				C42B4BBF258CBCF300C0EE5B /* main.m in Sources */,
 				C4B65EAC25909EDD00B1437A /* NSData+Compression.m in Sources */,
 				C4B65EA825906E5300B1437A /* LTEccTool.m in Sources */,
+				C445483725B1B01E0012CFE1 /* SSKeychain.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

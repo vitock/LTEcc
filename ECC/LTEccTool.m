@@ -17,6 +17,7 @@
 #import "base64.h"
 #import "Header.h"
 #import <Security/Security.h>
+#import "SSKeychain.h"
 #include <zlib.h>
 #define kGzBlockSize (1<<14)
 
@@ -441,107 +442,43 @@ OS_CONST static NSString *pubkeyforkeychain = @"BLLLgvLL7eoER5gPJ6eFhj4T3GPzSMOl
 
 
 - (NSString *)getPublicKeyInKeychain{
-    NSMutableDictionary *query = [NSMutableDictionary dictionaryWithObjectsAndKeys:
-            (id)kSecClassGenericPassword,(id)kSecClass,
-            @"vitock.ecc.publickey", (id)kSecAttrService,
-            @"e46c6231b528cd74e81570e0409eac2a", (id)kSecAttrAccount,
-            (id)kSecAttrAccessibleAfterFirstUnlock,(id)kSecAttrAccessible,
-            nil];
-  
-    [query setObject:(id)kCFBooleanTrue forKey:(id)kSecReturnData];
-    [query setObject:(id)kSecMatchLimitOne forKey:(id)kSecMatchLimit];
-    
-    NSString *strPri = nil;
-    CFDataRef keyData = NULL;
-    OSStatus status = SecItemCopyMatching((CFDictionaryRef)query, (CFTypeRef *)&keyData);
-    if (noErr == status ) {
-        NSString *strB64 = [[NSString alloc] initWithData:(__bridge NSData * _Nonnull)(keyData) encoding:NSUTF8StringEncoding];
+    NSString *strvalue =  [SSKeychain passwordForService:@"vitock.ecc.publickey" account:@"e46c6231b528cd74e81570e0409eac2a"];
+    if (strvalue) {
+        NSData *d0 = [self base64ToData:strvalue];
+        NSData *data1 = [self ecc_decrypt:d0 private:seckeyforkeychain];
         
-        NSData *datBase64 = [self base64ToData:strB64];
-        NSData *datKey = [self ecc_decrypt:datBase64 private:seckeyforkeychain];
-        strPri = [self bytesToBase64:datKey.bytes lenOfByte:datKey.length];
-        
-        
-        
+        return [[NSString alloc] initWithData:data1 encoding:NSUTF8StringEncoding];
     }
-    if (keyData)
-        CFRelease(keyData);
-    return strPri;
+    return nil;
+    
     
 }
 
 
 - (NSString *)getSecKeyInKeychain{
-    NSMutableDictionary *query = [NSMutableDictionary dictionaryWithObjectsAndKeys:
-            (id)kSecClassGenericPassword,(id)kSecClass,
-            @"vitock.ecc.privatekey", (id)kSecAttrService,
-            @"bd454dc28bdd8ffda5c775185ccc9814", (id)kSecAttrAccount,
-            (id)kSecAttrAccessibleAfterFirstUnlock,(id)kSecAttrAccessible,
-            nil];
-  
-    [query setObject:(id)kCFBooleanTrue forKey:(id)kSecReturnData];
-    [query setObject:(id)kSecMatchLimitOne forKey:(id)kSecMatchLimit];
-    
-    NSString *strPri = nil;
-    CFDataRef keyData = NULL;
-    if (SecItemCopyMatching((CFDictionaryRef)query, (CFTypeRef *)&keyData) == noErr) {
-        
-        NSString *strB64 = [[NSString alloc] initWithData:(__bridge NSData * _Nonnull)(keyData) encoding:NSUTF8StringEncoding];
-        
-        NSData *datBase64 = [self base64ToData:strB64];
-        NSData *datKey = [self ecc_decrypt:datBase64 private:seckeyforkeychain];
-        strPri = [self bytesToBase64:(void * )datKey.bytes lenOfByte:datKey.length];
+    NSString *strvalue = [SSKeychain passwordForService:@"vitock.ecc.privatekey" account:@"bd454dc28bdd8ffda5c775185ccc9814"];
+    if (strvalue) {
+        NSData *d0 = [self base64ToData:strvalue];
+        NSData *data1 = [self ecc_decrypt:d0 private:seckeyforkeychain];
+        return [[NSString alloc] initWithData:data1 encoding:NSUTF8StringEncoding];
     }
-    if (keyData)
-        CFRelease(keyData);
-    return strPri;
+    return nil;
+    
     
 }
 
 - (void)saveKeyToKeyChain:(NSString *)secKey pubKey:(NSString *)pubKey{
+    NSData *dsec = [self ecc_encrypt:[secKey dataUsingEncoding:NSUTF8StringEncoding] pubkey:pubkeyforkeychain];
+    NSData *dpub = [self ecc_encrypt:[pubKey dataUsingEncoding:NSUTF8StringEncoding] pubkey:pubkeyforkeychain];
     
-    if (secKey) {
-        NSData *dataSec = [self base64ToData:secKey];
-        NSData *datSecEnc =[self ecc_encrypt:dataSec pubkey:pubkeyforkeychain];
-        
-        NSString *SaveValue = [self bytesToBase64:(void * )datSecEnc.bytes lenOfByte:datSecEnc.length];
-         
-        NSMutableDictionary *query = [NSMutableDictionary dictionaryWithObjectsAndKeys:
-                (id)kSecClassGenericPassword,(id)kSecClass,
-                @"vitock.ecc.privatekey", (id)kSecAttrService,
-                @"bd454dc28bdd8ffda5c775185ccc9814", (id)kSecAttrAccount,
-                (id)kSecAttrAccessibleAfterFirstUnlock,(id)kSecAttrAccessible,
-                nil];
-      
-        [query setObject:SaveValue forKey:(id)kSecValueData];
-        OSStatus status = SecItemDelete((__bridge CFDictionaryRef)query);
-        status = SecItemAdd((__bridge CFDictionaryRef)query, NULL);
-        
-        if(status != errSecSuccess){
-            MyLogFunc(@"save key to key chain fail");
-        }
-    }
+    NSString *strSec = [self bytesToBase64:dsec.bytes lenOfByte:dsec.length];
+    NSString *strPub = [self bytesToBase64:dpub.bytes lenOfByte:dpub.length];
+    dsec = nil;
+    dpub = nil;
     
-    if (pubKey.length ) {
-        NSData *dataPub = [self base64ToData:pubKey];
-        NSData *datPubEnc =[self ecc_encrypt:dataPub pubkey:pubkeyforkeychain];
-        NSString *strSecSave = [self bytesToBase64:(void * )datPubEnc.bytes lenOfByte:datPubEnc.length];
-        
-        NSMutableDictionary *query = [NSMutableDictionary dictionaryWithObjectsAndKeys:
-                (id)kSecClassGenericPassword,(id)kSecClass,
-                @"vitock.ecc.publickey", (id)kSecAttrService,
-                @"e46c6231b528cd74e81570e0409eac2a", (id)kSecAttrAccount,
-                (id)kSecAttrAccessibleAfterFirstUnlock,(id)kSecAttrAccessible,
-                nil];
-      
-        [query setObject:strSecSave forKey:(id)kSecValueData];
-        SecItemDelete((__bridge CFDictionaryRef)query);
-        OSStatus status = SecItemAdd((__bridge CFDictionaryRef)query, NULL);
-        
-        if(status != errSecSuccess){
-            MyLogFunc(@"save key to key chain fail");
-        }
-    }
+    [SSKeychain setPassword:strSec forService:@"vitock.ecc.privatekey" account:@"bd454dc28bdd8ffda5c775185ccc9814"];
+    
+    [SSKeychain setPassword:strPub forService:@"vitock.ecc.publickey" account:@"e46c6231b528cd74e81570e0409eac2a"];
      
 }
 
@@ -1017,8 +954,9 @@ END:
 
 #ifdef  DEBUG
 XPC_CONSTRUCTOR static void test(){
-//    [[LTEccTool shared] ecc_encryptFile:@"/Users/liw003/Documents/a.txt.ec" outPath:@"a" pubkey:pubkeyforkeychain gzip:YES];
-//    [[LTEccTool shared] dealOutPath:@"/Users/liw003/Documents/a.txt.ec" inpath:@"/Users/liw003/Documents/a.txt"];
+    
+    [[LTEccTool shared] getPublicKeyInKeychain];
+    
 }
 #endif
 

@@ -126,8 +126,11 @@ int main(int argc, const char * argv[]) {
     if (!strPubKey) {
         strPubKey = dicArg[@"pubKey"];
     }
-     
-    if (argc >= 2  && 0 == strcmp(argv[1], "g")) {
+    
+    const char *cmd = argc > 1 ? argv[1] : "";
+//    cmd = "s";
+//    argc = 2;
+    if (argc >= 2  && 0 == strcmp(cmd, "g")) {
         NSDictionary *dic = [[LTEccTool shared] genKeyPair:strSecKey];
         NSString *priKey = dic[@"priKey"];
         NSString *pubKey = dic[@"pubKey"];
@@ -156,7 +159,7 @@ int main(int argc, const char * argv[]) {
             MyLogFunc(@"bb %@",dicArg);
         }
     }
-    else if (argc >= 2  && 0 == strcmp(argv[1], "s")) {
+    else if (argc >= 2  && 0 == strcmp(cmd, "s")) {
         NSString *priKey = [[LTEccTool shared] getSecKeyInKeychain];
         NSString *pubKey = [[LTEccTool shared] getPublicKeyInKeychain];
         
@@ -173,7 +176,7 @@ int main(int argc, const char * argv[]) {
         
     }
     
-    else if (argc >= 2  && 0 == strcmp(argv[1], "e")) {
+    else if (argc >= 2  && 0 == strcmp(cmd, "e")) {
         if (strPubKey.length == 0) {
             strPubKey = [[LTEccTool shared] getPublicKeyInKeychain];
         }
@@ -203,7 +206,7 @@ int main(int argc, const char * argv[]) {
         
         
     }
-    else if (argc >= 2  && 0 == strcmp(argv[1], "d")) {
+    else if (argc >= 2  && 0 == strcmp(cmd, "d")) {
         if (strSecKey.length == 0) {
             strSecKey = [[LTEccTool shared] getSecKeyInKeychain];
         }
@@ -238,7 +241,7 @@ int main(int argc, const char * argv[]) {
         
         
     }
-    else if (argc >= 2  && 0 == strcmp(argv[1], "r")) {
+    else if (argc >= 2  && 0 == strcmp(cmd, "r")) {
         
         NSString *strmsg = dicArg[@"m"];
         
