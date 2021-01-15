@@ -545,6 +545,37 @@ OS_CONST static NSString *pubkeyforkeychain = @"BLLLgvLL7eoER5gPJ6eFhj4T3GPzSMOl
      
 }
 
+- (NSString *)dealOutPath:(NSString *)outpath inpath:(NSString *)inpath{
+    BOOL isDirectory = NO;
+    BOOL isExesit = [[NSFileManager defaultManager] fileExistsAtPath:outpath isDirectory:&isDirectory];
+    
+    if (isExesit && isDirectory) {
+        NSString *strName = [inpath lastPathComponent];
+        outpath = [outpath stringByAppendingPathComponent:strName];
+        
+        return [self dealOutPath:outpath inpath:inpath];
+    }
+    else if(isExesit){
+        NSString *path2 = [outpath stringByDeletingLastPathComponent];
+        NSString *str2Extentiton =  [outpath pathExtension];
+        NSString *strFileName =  [[outpath stringByDeletingPathExtension] lastPathComponent];
+        int i = 2;
+        while (isExesit) {
+            NSString *strName2 = [NSString stringWithFormat:@"%@_%d",strFileName,i ++];
+            NSString *strNewPath =  [[path2 stringByAppendingPathComponent:strName2] stringByAppendingPathExtension:str2Extentiton];
+            isExesit = [[NSFileManager defaultManager] fileExistsAtPath:strNewPath isDirectory:&isDirectory];
+            
+            if (!isExesit) {
+                return strNewPath;
+            }
+            
+        }
+        
+    }
+    
+    return outpath;
+}
+
 - (void)ecc_decryptFile:(NSString *)inFilePath outPath:(NSString *)outpath secKey:(NSString *)seckey gzip:(BOOL) gzip{
     inFilePath =[self dealPath:inFilePath];
     
@@ -556,9 +587,10 @@ OS_CONST static NSString *pubkeyforkeychain = @"BLLLgvLL7eoER5gPJ6eFhj4T3GPzSMOl
             outpath = [inFilePath stringByAppendingPathExtension:@"dec"];
         }
     }
-    
-    
     outpath =[self dealPath:outpath];
+    
+    
+    outpath = [self dealOutPath:outpath inpath:inFilePath];
     
     NSInputStream *streamIn = [[NSInputStream alloc] initWithFileAtPath:inFilePath];
     [streamIn open];
@@ -796,6 +828,7 @@ END:
     
     
     outpath =[self dealPath:outpath];
+    outpath = [self dealOutPath:outpath inpath:strOriInputPath];
     
     NSInputStream *streamIn = [[NSInputStream alloc] initWithFileAtPath:inFilePath];
     NSOutputStream *streamOut = [NSOutputStream outputStreamToFileAtPath:outpath  append:NO];
@@ -976,8 +1009,11 @@ END:
  
 @end
 
-
+#ifdef  DEBUG
 XPC_CONSTRUCTOR static void test(){
+//    [[LTEccTool shared] ecc_encryptFile:@"/Users/liw003/Documents/a.txt.ec" outPath:@"a" pubkey:pubkeyforkeychain gzip:YES];
+//    [[LTEccTool shared] dealOutPath:@"/Users/liw003/Documents/a.txt.ec" inpath:@"/Users/liw003/Documents/a.txt"];
 }
+#endif
 
 
