@@ -501,8 +501,15 @@ OS_CONST static NSString *pubkeyforkeychain = @"BLLLgvLL7eoER5gPJ6eFhj4T3GPzSMOl
     }
     else if(isExesit){
         NSString *path2 = [outpath stringByDeletingLastPathComponent];
-        NSString *str2Extentiton =  [outpath pathExtension];
-        NSString *strFileName =  [[outpath stringByDeletingPathExtension] lastPathComponent];
+        NSString *strFileName =  [outpath  lastPathComponent];
+        NSString *str2Extentiton = [outpath pathExtension];
+        NSMutableArray *arrNames = [[strFileName componentsSeparatedByString:@"."] mutableCopy];
+        if (arrNames.count) {
+            strFileName  = arrNames[0];
+            [arrNames removeObjectAtIndex:0];
+            str2Extentiton = [arrNames componentsJoinedByString:@"."];
+        }
+        
         int i = 2;
         while (isExesit) {
             NSString *strName2 = [NSString stringWithFormat:@"%@_%d",strFileName,i ++];
