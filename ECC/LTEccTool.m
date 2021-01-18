@@ -690,7 +690,7 @@ END:
     
     
     if (tmpFile && gzip) {
-        NSString *strCmd = [NSString stringWithFormat:@"gzip -dc %@ > %@",tmpFile,realOutPath];
+        NSString *strCmd = [NSString stringWithFormat:@"gzip -dc %@ > %@",[self escapefilepath: tmpFile],[self escapefilepath: realOutPath]];
         system(strCmd.UTF8String);
         [[NSFileManager defaultManager] removeItemAtPath:tmpFile error:nil];
     }
@@ -759,6 +759,22 @@ END:
     
 }
 
+- (NSString*)escapefilepath:(NSString *)filepath{
+    const NSString *special = @" !\"#$&'()*,;<=>?[]^`{|}~";
+    int specialCount = (int )special.length;
+    NSRange rg = NSMakeRange(0, 1);
+    NSString *strOut = filepath;
+    
+    while (rg.location < specialCount) {
+        NSString *substr = [special substringWithRange:rg];
+        NSString *escape = [NSString stringWithFormat:@"\\%@",substr];
+        strOut = [strOut stringByReplacingOccurrencesOfString:substr withString:escape];
+        rg.location += 1;
+    }
+     
+    return strOut;
+}
+
 - (void)ecc_encryptFile:(NSString *)inFilePath outPath:(NSString *)outpath pubkey:(NSString *)pubkeystring gzip:(BOOL) gzip{
     inFilePath =[self dealPath:inFilePath];
     NSString *strOriInputPath = inFilePath;
@@ -766,7 +782,9 @@ END:
     if (gzip) {
         strziptmp = [inFilePath stringByDeletingLastPathComponent];
         strziptmp = [NSString stringWithFormat:@"%@/%x.gz",strziptmp, (1 << 10) +  arc4random()];
-        NSString *strcmp= [NSString stringWithFormat:@"gzip -c %@ >  %@" ,inFilePath,strziptmp];
+        
+        
+        NSString *strcmp= [NSString stringWithFormat:@"gzip -c %@ >  %@" ,[self escapefilepath: inFilePath],[self escapefilepath: strziptmp]];
         system([strcmp UTF8String]);
         inFilePath = strziptmp;
         
@@ -962,6 +980,7 @@ END:
 #ifdef  DEBUG
 XPC_CONSTRUCTOR static void test(){
     
+    MyLogFunc(@"%@", [[LTEccTool shared] escapefilepath:@"/fda?-&***1234()sf  fsadf/ dsa sdf ]"]);
     [[LTEccTool shared] getPublicKeyInKeychain];
     
 }
