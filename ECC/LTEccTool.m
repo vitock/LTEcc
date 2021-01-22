@@ -210,14 +210,13 @@ static int my_ecdh_hash_function(
 }
 
 - (void)genSecKey:(unsigned char *)secKey32{
-    char tmp[64] ;
-    const char *seed = "39583afc3b7af94b355be1a78f41780a";
-    memcpy(tmp, seed, strlen(seed));
+    char tmp[32] ;
+    //seed for generate seckey
+    uint8 seed[32];
     do {
-        do {
-            arc4random_buf(tmp + 32, 32);
-            CCHmac(kCCHmacAlgSHA256, tmp, 64, tmp + 32, 32, secKey32);
-        } while (0);
+        arc4random_buf(seed , 32);
+        arc4random_buf(tmp , 32);
+        CCHmac(kCCHmacAlgSHA256, tmp, 32, seed, 32, secKey32);
     } while (!secp256k1_ec_seckey_verify(self.ctx , secKey32));
 }
  
