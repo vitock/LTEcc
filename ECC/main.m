@@ -267,12 +267,11 @@ int main(int argc, const char * argv[]) {
         link = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
         
         
-        const NSString *helpfmt = @"lwEcc %s \n%@\ng [-prikey/secKey/s prikey]  generate keypair  [-S] saveto key chain\
+        const NSString *helpfmt = @"ecc %s \n%@\ng [-prikey/secKey/s prikey]  generate keypair  [-S] saveto key chain\
         \ne  -pubkey/p pubkey -m msg [-f inputfilepath] [-o outpath]\
         \nd  -prikey/s prikey -m base64ciphermsg  binary data from stdin [-f inputfilepath] [-o outpath]\
         \nr  -m msg print random art of msg\
         \ns  show saved key in keychain\n\
-        \nif e [-f] is specified,this will not zip the content,you need compress it yourself\
         \n[-o]  only works when -f is sepecified\
         \n-z set 0 if you dont want gzip  ";
         ;

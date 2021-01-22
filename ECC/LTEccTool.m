@@ -646,7 +646,7 @@ OS_CONST static NSString *pubkeyforkeychain = @"BLLLgvLL7eoER5gPJ6eFhj4T3GPzSMOl
     
     // iv empherpubkey dataenc
     CCHmacContext ctx;
-    CCHmacInit(&ctx, kCCHmacAlgSHA256 , dhHash+32, 32);
+    CCHmacInit(&ctx, kCCHmacAlgSHA256 , dhHash + 32, 32);
     CCHmacUpdate(&ctx,dataIv.bytes,dataIv.length);
     CCHmacUpdate(&ctx,dataEphermPubKey.bytes,dataEphermPubKey.length);
     
@@ -676,22 +676,27 @@ OS_CONST static NSString *pubkeyforkeychain = @"BLLLgvLL7eoER5gPJ6eFhj4T3GPzSMOl
     CCCryptorRelease(cryptor);
     UInt8 macOut[CC_SHA256_DIGEST_LENGTH];
     CCHmacFinal(&ctx, macOut);
-    if (!memcpy(macOut, dataMac.bytes, CC_SHA256_DIGEST_LENGTH)) {
+    
+    
+    if (0 != memcmp(macOut, dataMac.bytes, CC_SHA256_DIGEST_LENGTH)) {
         PrintErr( "mac not fit ");
         goto  END;
     }
     
    
     printf("\noutput file:%s\n",realOutPath.UTF8String);
+    if (tmpFile && gzip) {
+        NSString *strCmd = [NSString stringWithFormat:@"gzip -dc %@ > %@",[self escapefilepath: tmpFile],[self escapefilepath: realOutPath]];
+        system(strCmd.UTF8String);
+    }
+    
     
 END:
     free(dataOut);
     free(buffer);
     
     
-    if (tmpFile && gzip) {
-        NSString *strCmd = [NSString stringWithFormat:@"gzip -dc %@ > %@",[self escapefilepath: tmpFile],[self escapefilepath: realOutPath]];
-        system(strCmd.UTF8String);
+    if (tmpFile && gzip ) {
         [[NSFileManager defaultManager] removeItemAtPath:tmpFile error:nil];
     }
 }
@@ -980,8 +985,6 @@ END:
 #ifdef  DEBUG
 XPC_CONSTRUCTOR static void test(){
     
-    MyLogFunc(@"%@", [[LTEccTool shared] escapefilepath:@"/fda?-&***1234()sf  fsadf/ dsa sdf ]"]);
-    [[LTEccTool shared] getPublicKeyInKeychain];
     
 }
 #endif
