@@ -543,7 +543,7 @@ OS_CONST static NSString *pubkeyforkeychain = @"BLLLgvLL7eoER5gPJ6eFhj4T3GPzSMOl
     
     outpath = [self dealOutPath:outpath inpath:inFilePath isEncrypt:NO];
     
-    NSInputStream *streamIn = [[NSInputStream alloc] initWithFileAtPath:inFilePath];
+    NSInputStream *streamIn = [NSInputStream  inputStreamWithFileAtPath:inFilePath];
     [streamIn open];
     
     const size_t BufferSize = kCCBlockSizeAES128 << 10 ;
@@ -555,6 +555,8 @@ OS_CONST static NSString *pubkeyforkeychain = @"BLLLgvLL7eoER5gPJ6eFhj4T3GPzSMOl
     NSData *dataIv = nil;
     NSData *dataEphermPubKey = nil;
     NSData *dataMac = nil;
+    
+    int dataStartIndex = 0;
     if(readLen == 8){
         
         UInt16 ivLen = 0;
@@ -582,6 +584,9 @@ OS_CONST static NSString *pubkeyforkeychain = @"BLLLgvLL7eoER5gPJ6eFhj4T3GPzSMOl
         dataMac = [[NSData alloc] initWithBytes:buffer + ivLen length:macLen];
         dataEphermPubKey = [[NSData alloc] initWithBytes:buffer + ivLen + macLen length:ephermPubLen];
         
+        
+        dataStartIndex = 8 + ivLen + macLen + ephermPubLen;
+        
     }
     else{
         PrintErr("file format is not suitable");
@@ -607,8 +612,7 @@ OS_CONST static NSString *pubkeyforkeychain = @"BLLLgvLL7eoER5gPJ6eFhj4T3GPzSMOl
         
     }
     
-    streamOut = [NSOutputStream outputStreamToFileAtPath:outpath  append:NO];
-    [streamOut open];
+  
     
     UInt8 dhHash[64];
     {
@@ -637,52 +641,55 @@ OS_CONST static NSString *pubkeyforkeychain = @"BLLLgvLL7eoER5gPJ6eFhj4T3GPzSMOl
             return ;
         }
     }
-     
-    
-    
-    CCCryptorRef cryptor;
-    CCCryptorCreate(kCCDecrypt, kCCAlgorithmAES, kCCOptionPKCS7Padding, dhHash, kCCKeySizeAES256, dataIv.bytes, &cryptor);
-    
-    
+ 
+    /// check mac
     // iv empherpubkey dataenc
     CCHmacContext ctx;
     CCHmacInit(&ctx, kCCHmacAlgSHA256 , dhHash + 32, 32);
     CCHmacUpdate(&ctx,dataIv.bytes,dataIv.length);
     CCHmacUpdate(&ctx,dataEphermPubKey.bytes,dataEphermPubKey.length);
-    
     readLen = [streamIn read:buffer maxLength:BufferSize];
     
     size_t dataOutAvailable = BufferSize + kCCBlockSizeAES128;
     UInt8 *dataOut = malloc(dataOutAvailable);
     size_t dataOutLen = 0;
-    uLong unzipSize = 0;
    
     while (readLen > 0 ) {
         CCHmacUpdate(&ctx, buffer, readLen);
-        CCCryptorUpdate(cryptor, buffer, readLen, dataOut, dataOutAvailable, &dataOutLen);
-        if (dataOutLen > 0 ) {
-            [streamOut write:dataOut maxLength:dataOutLen];
-        }
         readLen = [streamIn read:buffer maxLength:BufferSize];
     }
-    
-    CCCryptorFinal(cryptor, dataOut, dataOutAvailable, &dataOutLen);
-    if (dataOutLen > 0) {
-        [streamOut write:dataOut maxLength:dataOutLen];
-    }
-    [streamIn close];
-    [streamOut close];
-    
-    CCCryptorRelease(cryptor);
     UInt8 macOut[CC_SHA256_DIGEST_LENGTH];
     CCHmacFinal(&ctx, macOut);
-    
     
     if (0 != memcmp(macOut, dataMac.bytes, CC_SHA256_DIGEST_LENGTH)) {
         PrintErr( "mac not fit ");
         goto  END;
     }
     
+    /// decrypt and write
+    [streamIn close];
+    streamIn = [NSInputStream  inputStreamWithFileAtPath:inFilePath];
+    [streamIn open];
+    
+    streamOut = [NSOutputStream outputStreamToFileAtPath:outpath  append:NO];
+    [streamOut open];
+    [streamIn setProperty:@(dataStartIndex) forKey:NSStreamFileCurrentOffsetKey];
+    CCCryptorRef cryptor;
+    CCCryptorCreate(kCCDecrypt, kCCAlgorithmAES, kCCOptionPKCS7Padding, dhHash, kCCKeySizeAES256, dataIv.bytes, &cryptor);
+    readLen = [streamIn read:buffer maxLength:BufferSize];
+    while (readLen > 0 ) {
+        CCCryptorUpdate(cryptor, buffer, readLen, dataOut, dataOutAvailable, &dataOutLen);
+        if (dataOutLen > 0 ) {
+            [streamOut write:dataOut maxLength:dataOutLen];
+        }
+        readLen = [streamIn read:buffer maxLength:BufferSize];
+    }
+    CCCryptorFinal(cryptor, dataOut, dataOutAvailable, &dataOutLen);
+    if (dataOutLen > 0) {
+        [streamOut write:dataOut maxLength:dataOutLen];
+    }
+    CCCryptorRelease(cryptor);
+     
    
     printf("\noutput file:%s\n",realOutPath.UTF8String);
     if (tmpFile && gzip) {
@@ -691,7 +698,9 @@ OS_CONST static NSString *pubkeyforkeychain = @"BLLLgvLL7eoER5gPJ6eFhj4T3GPzSMOl
     }
     
     
-END:
+END: // clear
+    [streamIn close];
+    [streamOut close];
     free(dataOut);
     free(buffer);
     
@@ -984,7 +993,12 @@ END:
 
 #ifdef  DEBUG
 XPC_CONSTRUCTOR static void test(){
-    
+//    system("rm /Users/liw003/Documents/booo/a.txt.ec");
+//    system("rm /Users/liw003/Documents/booo/a_2.txt");
+//    [[LTEccTool shared] ecc_encryptFile:@"/Users/liw003/Documents/booo/a.txt" outPath:nil  pubkey:pubkeyforkeychain gzip:YES];
+//    
+//    
+//    [[LTEccTool shared] ecc_decryptFile:@"/Users/liw003/Documents/booo/a.txt.ec" outPath:nil  secKey:seckeyforkeychain gzip:YES];
     
 }
 #endif
