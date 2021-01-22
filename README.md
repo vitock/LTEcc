@@ -10,7 +10,10 @@
 
 
 或者指定随机私钥 (32字节的base64 ) 
-> ecc g -s  ZGLesiQ5A09PfRDDvJqNM7FxZcf2j0dMeGyV0E/A74Q=
+> ecc g -s  ZGLesiQ5A09PfRDDvJqNM7FxZcf2j0dMeGyV0E/A74Q=  
+> // 保存到keychain   -S
+> ecc g -s  ZGLesiQ5A09PfRDDvJqNM7FxZcf2j0dMeGyV0E/A74Q= -S 
+> 
 
 
 输出 会显示公钥和私钥,同时显示私钥的sha256指纹,以及其randomart
@@ -54,6 +57,11 @@ pubKey:BKZ2iYIYZxAtxsw/ovquy67sS5nhVoWydYB+JEvwMxMRM26tdCux0f7oSuUgMZa/Sqh3+7ZqW
  ecc e -p BGjWSuufcBmXmfM6Tdvu0GQfhQRmigD9hD+C+cDgdAKRGug/ZTPC4eZrMlGR3dv4A798g4SyvyoJAg+wWUgOIMo= -m hello | base64
 
 
+加密文件
+> ecc e -f SFBJ.txt  // -p 指定公钥,不指定就从keychain读取, -o 指定目标文件
+
+解密 文件
+> ecc d -f  SFBJ.txt.ec // -s 指定私钥,不指定就从keychain读取, -o 指定目标文件
  ## 解密
  
 
