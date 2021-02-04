@@ -156,9 +156,10 @@ static int my_ecdh_hash_function(
         size_t blocksize = secp256k1_context_preallocated_size(SECP256K1_CONTEXT_SIGN);
         unsigned char *p = malloc(blocksize);
         self.ctx = secp256k1_context_preallocated_create(p,SECP256K1_CONTEXT_SIGN);
-        const char seed[32] = "312255ff8b9db2d1d43bffbe44664238";
-        arc4random_buf(seed, 32);
-        int r = secp256k1_context_randomize(self.ctx,seed);
+        
+        uint8_t seed[32];
+        [self randBuffer:seed  length:32];
+        secp256k1_context_randomize(self.ctx,seed);
         
     }
     
@@ -210,14 +211,22 @@ static int my_ecdh_hash_function(
     }
     return dicOut;
 }
+- (void)randBuffer:(uint8_t *)buffer length:(int)len{
+    int r = SecRandomCopyBytes(NULL , len, buffer);
+    if (r==0) {
+        return;;
+    }
+    arc4random_buf(buffer, len);
+}
 
 - (void)genSecKey:(unsigned char *)secKey32{
     char tmp[32] ;
     //seed for generate seckey
     uint8 seed[32];
     do {
-        arc4random_buf(seed , 32);
-        arc4random_buf(tmp , 32);
+        
+        [self randBuffer:seed  length:32];
+        [self randBuffer:tmp  length:32];
         CCHmac(kCCHmacAlgSHA256, tmp, 32, seed, 32, secKey32);
     } while (!secp256k1_ec_seckey_verify(self.ctx , secKey32));
 }
@@ -270,7 +279,8 @@ static int my_ecdh_hash_function(
     }
     
     char iv[kCCBlockSizeAES128] ;
-    arc4random_buf(iv , kCCBlockSizeAES128);
+    [self randBuffer:iv  length:kCCBlockSizeAES128];
+    
     NSData *dataPlain = dataPlain0; // [strPlainTxt dataUsingEncoding:NSUTF8StringEncoding];
     
     
@@ -872,7 +882,8 @@ END: // clear
     UInt8 macBuffer[CC_SHA256_DIGEST_LENGTH];
     memset(macBuffer, 0, CC_SHA256_DIGEST_LENGTH);
     uint8_t iv[kCCBlockSizeAES128] ;
-    arc4random_buf(iv , kCCBlockSizeAES128);
+    
+    [self randBuffer:iv  length:kCCBlockSizeAES128];
     {
         UInt16 ivLen = kCCBlockSizeAES128;
         UInt16 macLen = CC_SHA256_DIGEST_LENGTH;
@@ -941,7 +952,7 @@ END: // clear
     CCCryptorRelease(cryptor);
     free(bufferEncry);
     free(buffer);
-    arc4random_buf(dhHash, 32);
+    [self randBuffer:dhHash  length:32];
     memset(&ctx , 0, sizeof(ctx));
     [streamIn close];
     [streamOut close];
@@ -965,7 +976,7 @@ END: // clear
         
         const int removeBfs = 1 << 9;
         uint8_t removebuffer[removeBfs];
-        arc4random_buf(removebuffer, removeBfs);
+        [self randBuffer:removebuffer length:removeBfs];
         NSInteger l = 0;
         NSInteger r = 0;
         while (l < filesize ) {
