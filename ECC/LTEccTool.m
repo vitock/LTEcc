@@ -665,10 +665,27 @@ OS_CONST static NSString *pubkeyforkeychain = @"BLLLgvLL7eoER5gPJ6eFhj4T3GPzSMOl
     UInt8 *dataOut = malloc(dataOutAvailable);
     size_t dataOutLen = 0;
    
+    unsigned long long fileSize = [[[NSFileManager defaultManager] attributesOfItemAtPath:inFilePath error:nil] fileSize];
+    
+    NSUInteger minDlt = fileSize * 0.01;
+    unsigned long long checked = 0;
+    NSUInteger currentDlt = 0;
+    
+    printf("\n");
+    [LTEccTool printProgress:@"check" percent:0];
     while (readLen > 0 ) {
         CCHmacUpdate(&ctx, buffer, readLen);
         readLen = [streamIn read:buffer maxLength:BufferSize];
+        currentDlt += readLen;
+        checked += readLen;
+        if (currentDlt >= minDlt) {
+            currentDlt = 0;
+            [LTEccTool printProgress:@"check" percent:(double)checked / fileSize];
+        }
     }
+    [LTEccTool printProgress:@"check" percent:1];
+    printf("\n");
+    
     UInt8 macOut[CC_SHA256_DIGEST_LENGTH];
     CCHmacFinal(&ctx, macOut);
     
@@ -684,6 +701,15 @@ OS_CONST static NSString *pubkeyforkeychain = @"BLLLgvLL7eoER5gPJ6eFhj4T3GPzSMOl
     
     streamOut = [NSOutputStream outputStreamToFileAtPath:outpath  append:NO];
     [streamOut open];
+    unsigned long long encryptDataSize = fileSize - dataStartIndex;
+    
+    NSInteger minShowProgressSize = encryptDataSize * 0.01;
+    NSInteger currentDelt = 0;
+    unsigned long long currentDecrypt = 0;
+    
+    
+    
+    
     [streamIn setProperty:@(dataStartIndex) forKey:NSStreamFileCurrentOffsetKey];
     CCCryptorRef cryptor;
     CCCryptorCreate(kCCDecrypt, kCCAlgorithmAES, kCCOptionPKCS7Padding, dhHash, kCCKeySizeAES256, dataIv.bytes, &cryptor);
@@ -692,6 +718,14 @@ OS_CONST static NSString *pubkeyforkeychain = @"BLLLgvLL7eoER5gPJ6eFhj4T3GPzSMOl
         CCCryptorUpdate(cryptor, buffer, readLen, dataOut, dataOutAvailable, &dataOutLen);
         if (dataOutLen > 0 ) {
             [streamOut write:dataOut maxLength:dataOutLen];
+            
+            currentDecrypt += dataOutLen;
+            currentDelt += dataOutLen;
+            if (currentDelt >= minShowProgressSize) {
+                currentDelt = 0;
+                [LTEccTool printProgress:@"decrypt" percent:(double)currentDecrypt/encryptDataSize ];
+            }
+            
         }
         readLen = [streamIn read:buffer maxLength:BufferSize];
     }
@@ -700,15 +734,16 @@ OS_CONST static NSString *pubkeyforkeychain = @"BLLLgvLL7eoER5gPJ6eFhj4T3GPzSMOl
         [streamOut write:dataOut maxLength:dataOutLen];
     }
     CCCryptorRelease(cryptor);
-     
+    [LTEccTool printProgress:@"decrypt" percent:1];
    
  
     if (tmpFile && gzip) {
         
         printf("\n");
         [self unzipFile:tmpFile outFile:realOutPath progress:^(CGFloat percent) {
-                    [LTEccTool printProgress:@"unzip" percent:percent];
+            [LTEccTool printProgress:@"unzipping" percent:percent];
         }];
+        [LTEccTool printProgress:@"unzipping" percent:1];
         printf("\n");
         printf("\noutput file:%s\n",realOutPath.UTF8String);
         
@@ -814,12 +849,13 @@ END: // clear
     NSString *strziptmp = nil;
     if (gzip) {
         strziptmp = [inFilePath stringByDeletingLastPathComponent];
-        strziptmp = [NSString stringWithFormat:@"%@/%x.gz",strziptmp, (1 << 10) +  arc4random()];
+        strziptmp = [NSString stringWithFormat:@"%@/%x.tmp.gz",strziptmp, (1 << 10) +  arc4random()];
         
         printf("\n");
         [self zipFile:inFilePath outFile:strziptmp progress:^(CGFloat percent) {
-            [LTEccTool printProgress:@"zip" percent:percent];
+            [LTEccTool printProgress:@"zipping" percent:percent];
         }];
+        [LTEccTool printProgress:@"zipping" percent:1];
         printf("\n");
         
 //        NSString *strcmp= [NSString stringWithFormat:@"gzip -c %@ >  %@" ,[self escapefilepath: inFilePath],[self escapefilepath: strziptmp]];
@@ -930,11 +966,27 @@ END: // clear
     
     readDateLen = [streamIn read:buffer maxLength:buffersize];
     size_t  encsize = 0;
+    
+    unsigned long long zipfilesize = [[[NSFileManager defaultManager] attributesOfItemAtPath:strziptmp error:nil] fileSize];
+    
+    
+    NSUInteger  minDeltSize = zipfilesize * 0.01;
+    
+    printf("\n");
+    
+    NSUInteger encryptedSize = 0;
+    NSUInteger encryptedDelt = 0;
     while (readDateLen > 0 ){
         CCCryptorUpdate(cryptor, buffer, readDateLen, bufferEncry, encbuffersize, &encsize);
         if (encsize > 0) {
             CCHmacUpdate(&ctx, bufferEncry, encsize);
             [streamOut write:bufferEncry maxLength:encsize];
+            encryptedDelt += encsize;
+            encryptedSize += encsize;
+            if (encryptedDelt >= minDeltSize) {
+                encryptedDelt = 0;
+                [LTEccTool printProgress:@"encrypt" percent:(double)encryptedSize/zipfilesize];
+            }
         }
         readDateLen = [streamIn read:buffer maxLength:buffersize];
     }
@@ -947,6 +999,8 @@ END: // clear
     if (encsize > 0 ) {
         [streamOut write:bufferEncry maxLength:encsize];
     }
+    [LTEccTool printProgress:@"encrypt" percent:1];
+    printf("\n");
     
     
     CCCryptorRelease(cryptor);
@@ -974,12 +1028,13 @@ END: // clear
         NSOutputStream *removeStream = [NSOutputStream outputStreamToFileAtPath:strziptmp append:NO];
         [removeStream open];
         
-        const int removeBfs = 1 << 9;
+        const int removeBfs = 1 << 10;
         uint8_t removebuffer[removeBfs];
         [self randBuffer:removebuffer length:removeBfs];
         NSInteger l = 0;
         NSInteger r = 0;
-        while (l < filesize ) {
+        /// 最多重复写入1M 随机数据,然后删除
+        while (l < filesize && l <= (1 <<20)  ) {
             r = [removeStream write:removebuffer maxLength:removeBfs];
             if (r > 0 ) {
                 l += r;
@@ -1049,7 +1104,7 @@ END: // clear
         
         if (progress) {
             CGFloat t = zipFile->pos / (double) fileSize;
-            if(t - percent0 >= 0.001){
+            if(t - percent0 >= 0.01){
                 percent0 = t;
                 progress(percent0);
             }
@@ -1103,7 +1158,7 @@ END: // clear
             current += readLen;
             if (progress) {
                 CGFloat t = (double)current/fileSize;
-                if(t - percetn0 > 0.001){
+                if(t - percetn0 > 0.01){
                     percetn0 = t;
                     progress(t);
                 }
@@ -1122,7 +1177,7 @@ END: // clear
 
 + (void)printProgress:(NSString *)msg percent:(CGFloat) percent{
     percent = percent > 1 ? 1 : percent;
-    fprintf(stdout, "\r%s ",[msg UTF8String]);
+    fprintf(stdout, "\r%-*s ",8,[msg UTF8String]);
  
     
     const int max = 35;
@@ -1137,7 +1192,7 @@ END: // clear
         printf("░");
     }
     
-    printf(" %.01f%%",100 * percent);
+    printf(" %.0f%%",100 * percent);
     fflush(stdout);
 }
 @end
@@ -1147,7 +1202,7 @@ XPC_CONSTRUCTOR static void test(){
 //
 //    [[LTEccTool shared] zipFile:@"/Users/liw003/Downloads/backtothefuture2.mkv" outFile:@"/Users/liw003/Downloads/backtothefuture2.mkv.gz"  progress:^(CGFloat percent) {
 //
-//        [LTEccTool printProgress:@"zip" percent:percent];
+//        [LTEccTool printProgress:@"zipping" percent:percent];
 //
 //    }];
 //    printf("\n");
