@@ -21,6 +21,8 @@
 #include <zlib.h>
 #define kGzBlockSize (1<<14)
 
+
+
 @interface ECCEncResult:NSObject
 @property (nonatomic, strong)NSData *ephemPubkeyData;
 @property (nonatomic, strong)NSData *iv;
@@ -690,10 +692,18 @@ OS_CONST static NSString *pubkeyforkeychain = @"BLLLgvLL7eoER5gPJ6eFhj4T3GPzSMOl
     CCCryptorRelease(cryptor);
      
    
-    printf("\noutput file:%s\n",realOutPath.UTF8String);
+ 
     if (tmpFile && gzip) {
-        NSString *strCmd = [NSString stringWithFormat:@"gzip -dc %@ > %@",[self escapefilepath: tmpFile],[self escapefilepath: realOutPath]];
-        system(strCmd.UTF8String);
+        
+        printf("\n");
+        [self unzipFile:tmpFile outFile:realOutPath progress:^(CGFloat percent) {
+                    [LTEccTool printProgress:@"unzip" percent:percent];
+        }];
+        printf("\n");
+        printf("\noutput file:%s\n",realOutPath.UTF8String);
+        
+//        NSString *strCmd = [NSString stringWithFormat:@"gzip -dc %@ > %@",[self escapefilepath: tmpFile],[self escapefilepath: realOutPath]];
+//        system(strCmd.UTF8String);
     }
     
     
@@ -796,9 +806,14 @@ END: // clear
         strziptmp = [inFilePath stringByDeletingLastPathComponent];
         strziptmp = [NSString stringWithFormat:@"%@/%x.gz",strziptmp, (1 << 10) +  arc4random()];
         
+        printf("\n");
+        [self zipFile:inFilePath outFile:strziptmp progress:^(CGFloat percent) {
+            [LTEccTool printProgress:@"zip" percent:percent];
+        }];
+        printf("\n");
         
-        NSString *strcmp= [NSString stringWithFormat:@"gzip -c %@ >  %@" ,[self escapefilepath: inFilePath],[self escapefilepath: strziptmp]];
-        system([strcmp UTF8String]);
+//        NSString *strcmp= [NSString stringWithFormat:@"gzip -c %@ >  %@" ,[self escapefilepath: inFilePath],[self escapefilepath: strziptmp]];
+//        system([strcmp UTF8String]);
         inFilePath = strziptmp;
         
     }
@@ -987,11 +1002,154 @@ END: // clear
         return path2.stringByStandardizingPath;
     }
 }
+
+
+- (void)unzipFile:(NSString *)infile outFile:(NSString *)outpath progress:(void(^)(CGFloat)) progress{
+    infile = [self dealPath:infile];
+    outpath = [self dealPath:outpath];
+    if (!outpath) {
+        NSAssert(outpath, @"zip:need out path");
+        return;
+    }
+    
+    
+    NSOutputStream *streamOut = [NSOutputStream  outputStreamToFileAtPath:outpath append:NO];
+    [streamOut open];
+    gzFile zipFile = gzopen(infile.UTF8String, "r");
+    
+    
+    NSDictionary *dic1 = [[NSFileManager defaultManager] attributesOfItemAtPath:infile error:nil];
+    
+    NSNumber *sizeOfInFile = dic1[NSFileSize];
+    unsigned long long  fileSize = [sizeOfInFile unsignedLongLongValue];
+    
+    
+    /// 4k
+    const int maxBuffer = 1 << 20;
+    uint8_t buffer[maxBuffer];
+    
+    NSInteger uncompressLen = 0;
+    CGFloat percent0 = -1;
+    do {
+        uncompressLen = gzread(zipFile, buffer, (unsigned)maxBuffer);
+        
+        [streamOut write:buffer maxLength:uncompressLen];
+//        readLen = [streamIn read:buffer maxLength:maxBuffer];
+        
+        if (progress) {
+            CGFloat t = zipFile->pos / (double) fileSize;
+            if(t - percent0 >= 0.001){
+                percent0 = t;
+                progress(percent0);
+            }
+        }
+        
+        
+        if(uncompressLen == -1){
+            /// error
+            break;
+        }
+        else  if (uncompressLen  < maxBuffer) {
+            break;
+        }
+        
+    } while (1);
+    
+     
+    gzclose(zipFile);
+    [streamOut close];
+    
+    
+}
+
+- (void)zipFile:(NSString *)infile outFile:(NSString *)outpath progress:(void(^)(CGFloat)) progress{
+    infile = [self dealPath:infile];
+    outpath = [self dealPath:outpath];
+    if (!outpath) {
+        NSAssert(outpath, @"zip:need out path");
+        return;
+    }
+    NSInputStream *streamIn = [NSInputStream  inputStreamWithFileAtPath:infile];
+    [streamIn open];
+    gzFile zipFile = gzopen(outpath.UTF8String, "w");
+    
+    
+    NSDictionary *dic1 = [[NSFileManager defaultManager] attributesOfItemAtPath:infile error:nil];
+    
+    NSNumber *sizeOfInFile = dic1[NSFileSize];
+    unsigned long long  fileSize = [sizeOfInFile unsignedLongLongValue];
+    unsigned long long  current = 0;
+    
+    /// 1M
+    const int maxBuffer = 1 << 20;
+    uint8_t buffer[maxBuffer];
+    NSInteger readLen = 0;
+    CGFloat percetn0 = -1;
+    do {
+        readLen = [streamIn read:buffer maxLength:maxBuffer];
+        if (readLen > 0) {
+            gzwrite(zipFile, buffer, (unsigned)readLen);
+            current += readLen;
+            if (progress) {
+                CGFloat t = (double)current/fileSize;
+                if(t - percetn0 > 0.001){
+                    percetn0 = t;
+                    progress(t);
+                }
+                
+                
+            }
+        }
+        
+    } while (readLen > 0);
+    
+     
+    gzclose(zipFile);
+    [streamIn close];
+
+}
+
++ (void)printProgress:(NSString *)msg percent:(CGFloat) percent{
+    percent = percent > 1 ? 1 : percent;
+    fprintf(stdout, "\r%s ",[msg UTF8String]);
  
+    
+    const int max = 35;
+    int progres = (int)(percent * max);
+    
+    for (int i = 0 ; i <  progres && i < max; ++ i ) {
+        printf("█");
+    }
+    
+    int left = max - progres;
+    for (int i = 0 ; i  < left ; ++ i ) {
+        printf("░");
+    }
+    
+    printf(" %.01f%%",100 * percent);
+    fflush(stdout);
+}
 @end
 
 #ifdef  DEBUG
 XPC_CONSTRUCTOR static void test(){
+//
+//    [[LTEccTool shared] zipFile:@"/Users/liw003/Downloads/backtothefuture2.mkv" outFile:@"/Users/liw003/Downloads/backtothefuture2.mkv.gz"  progress:^(CGFloat percent) {
+//
+//        [LTEccTool printProgress:@"zip" percent:percent];
+//
+//    }];
+//    printf("\n");
+//
+//    [[LTEccTool shared] zipFile:@"/Users/liw003/Downloads/backtothefuture2.mkv.gz" outFile:@"/Users/liw003/Downloads/backtothefuture2-2.mkv"  progress:^(CGFloat percent) {
+//
+//        [LTEccTool printProgress:@"unzip" percent:percent];
+//
+//    }];
+//    printf("\n");
+    
+    
+//    [[LTEccTool shared] unzipFile:@"/Users/liw003/Downloads/backtothefuture2.mkv.gz" outFile:@"/Users/liw003/Downloads/backtothefuture22.mkv"  progress:nil];
 //    system("rm /Users/liw003/Documents/booo/a.txt.ec");
 //    system("rm /Users/liw003/Documents/booo/a_2.txt");
 //    [[LTEccTool shared] ecc_encryptFile:@"/Users/liw003/Documents/booo/a.txt" outPath:nil  pubkey:pubkeyforkeychain gzip:YES];
