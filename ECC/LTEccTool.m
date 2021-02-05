@@ -196,9 +196,9 @@ static int my_ecdh_hash_function(
     
     char pPubOut65[65];
     size_t pubLen = 65;
-    secp256k1_ec_pubkey_serialize(self.ctx, pPubOut65, &pubLen, &pubkey, SECP256K1_EC_UNCOMPRESSED);
+    secp256k1_ec_pubkey_serialize(self.ctx, pPubOut65, &pubLen, &pubkey, SECP256K1_EC_COMPRESSED);
     
-    NSString *strPub = [self bytesToBase64:pPubOut65 lenOfByte:65];
+    NSString *strPub = [self bytesToBase64:pPubOut65 lenOfByte:pubLen];
     
     NSMutableDictionary *dicOut = [NSMutableDictionary new];
     if (strPub) {
@@ -309,7 +309,7 @@ static int my_ecdh_hash_function(
     
     unsigned char outPub[65];
     size_t len=65;
-    secp256k1_ec_pubkey_serialize(self.ctx, outPub, &len,&randomPub, SECP256K1_EC_UNCOMPRESSED);
+    secp256k1_ec_pubkey_serialize(self.ctx, outPub, &len,&randomPub, SECP256K1_EC_COMPRESSED);
     result.ephemPubkeyData = [[NSData alloc] initWithBytes:outPub  length:len];
     
     
@@ -909,7 +909,7 @@ END: // clear
             return ;
         }
         size_t len = publen;
-        secp256k1_ec_pubkey_serialize(self.ctx, outPub, &len,&randomPub, SECP256K1_EC_UNCOMPRESSED);
+        secp256k1_ec_pubkey_serialize(self.ctx, outPub, &len,&randomPub, SECP256K1_EC_COMPRESSED);
          
     }
     
