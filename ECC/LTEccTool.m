@@ -878,7 +878,7 @@ END: // clear
     [streamIn open];
      
     UInt8 dhHash[64];
-    const  size_t publen=65;
+    size_t publen=65;
     
     UInt8 outPub[publen];
     {
@@ -908,8 +908,7 @@ END: // clear
             PrintErr("pubkey is not falid");
             return ;
         }
-        size_t len = publen;
-        secp256k1_ec_pubkey_serialize(self.ctx, outPub, &len,&randomPub, SECP256K1_EC_COMPRESSED);
+        secp256k1_ec_pubkey_serialize(self.ctx, outPub, &publen,&randomPub, SECP256K1_EC_COMPRESSED);
          
     }
     
@@ -1199,6 +1198,9 @@ END: // clear
 
 #ifdef  DEBUG
 XPC_CONSTRUCTOR static void test(){
+    
+//    [[LTEccTool shared]  ecc_encryptFile:@"/Users/liw003/Documents/book/a.txt" outPath:nil pubkey:@"Apl3q0lZD6xsKwLBwL6evX3rETSKz5yN0tGXHCWILsYq" gzip:YES];
+//    [[LTEccTool shared] ecc_decryptFile:@"/Users/liw003/Documents/book/a.txt.ec" outPath:nil secKey:@"z6Uip4ZhgiwxHdmBAblxMmVQLOghm0hNPEBj4x6Xyug=" gzip:YES];
 //
 //    [[LTEccTool shared] zipFile:@"/Users/liw003/Downloads/backtothefuture2.mkv" outFile:@"/Users/liw003/Downloads/backtothefuture2.mkv.gz"  progress:^(CGFloat percent) {
 //
