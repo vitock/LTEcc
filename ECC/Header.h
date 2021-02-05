@@ -34,6 +34,6 @@ metamacro_at20( __VA_ARGS__, 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0)
 
 #define PrintErr(...) CAT(__err__,metamacro_is_only_one(__VA_ARGS__))(__VA_ARGS__)
 
-#define Version "0.0.4.1"
+#define Version "0.0.4.2"
 
 #endif /* Header_h */
