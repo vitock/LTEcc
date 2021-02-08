@@ -34,6 +34,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 
 - (NSString *)dealPath:(NSString *)path;
+
+
+- (NSString *)genKeyPhrase:(int) count;
 @end
 
 NS_ASSUME_NONNULL_END

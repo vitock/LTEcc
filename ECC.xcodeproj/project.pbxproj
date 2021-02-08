@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		C42B4BBF258CBCF300C0EE5B /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = C42B4BBE258CBCF300C0EE5B /* main.m */; };
 		C42B4BC8258CBDD900C0EE5B /* libsecp256k1.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C42B4BC7258CBDD900C0EE5B /* libsecp256k1.a */; };
+		C439553E25D103EF00DE70CC /* Words.m in Sources */ = {isa = PBXBuildFile; fileRef = C439553D25D103EE00DE70CC /* Words.m */; };
 		C445483725B1B01E0012CFE1 /* SSKeychain.m in Sources */ = {isa = PBXBuildFile; fileRef = C445483625B1B01E0012CFE1 /* SSKeychain.m */; };
 		C45CFC9A25A3FB9E00FB7AE0 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C45CFC9925A3FB9E00FB7AE0 /* Security.framework */; };
 		C4B65EA825906E5300B1437A /* LTEccTool.m in Sources */ = {isa = PBXBuildFile; fileRef = C4B65EA725906E5300B1437A /* LTEccTool.m */; };
@@ -31,6 +32,7 @@
 
 /* Begin PBXFileReference section */
 		C4002AD5259DAAB800F1021F /* Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Header.h; sourceTree = "<group>"; };
+		C40892A225D10523005B9B61 /* words.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = words.txt; sourceTree = "<group>"; };
 		C42B4BBB258CBCF300C0EE5B /* ecc */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = ecc; sourceTree = BUILT_PRODUCTS_DIR; };
 		C42B4BBE258CBCF300C0EE5B /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		C42B4BC7258CBDD900C0EE5B /* libsecp256k1.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libsecp256k1.a; path = ECC/libsecp256k1.a; sourceTree = "<group>"; };
@@ -40,6 +42,8 @@
 		C42B4BCD258CC0C400C0EE5B /* secp256k1_extrakeys.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = secp256k1_extrakeys.h; sourceTree = "<group>"; };
 		C42B4BCE258CC0C400C0EE5B /* secp256k1_preallocated.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = secp256k1_preallocated.h; sourceTree = "<group>"; };
 		C42B4BCF258CC0C400C0EE5B /* secp256k1.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = secp256k1.h; sourceTree = "<group>"; };
+		C439553C25D1024E00DE70CC /* Words.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Words.h; sourceTree = "<group>"; };
+		C439553D25D103EE00DE70CC /* Words.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Words.m; sourceTree = "<group>"; };
 		C445483525B1B01E0012CFE1 /* SSKeychain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SSKeychain.h; sourceTree = "<group>"; };
 		C445483625B1B01E0012CFE1 /* SSKeychain.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SSKeychain.m; sourceTree = "<group>"; };
 		C45CFC9925A3FB9E00FB7AE0 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
@@ -99,6 +103,9 @@
 				C4B65EAA25909EDD00B1437A /* NSData+Compression.h */,
 				C4B65EAB25909EDD00B1437A /* NSData+Compression.m */,
 				C4002AD5259DAAB800F1021F /* Header.h */,
+				C439553C25D1024E00DE70CC /* Words.h */,
+				C439553D25D103EE00DE70CC /* Words.m */,
+				C40892A225D10523005B9B61 /* words.txt */,
 			);
 			path = ECC;
 			sourceTree = "<group>";
@@ -202,6 +209,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C439553E25D103EF00DE70CC /* Words.m in Sources */,
 				C4B65EC02594223500B1437A /* base64.c in Sources */,
 				C4B65EB525935BFD00B1437A /* randomart.c in Sources */,
 				C42B4BBF258CBCF300C0EE5B /* main.m in Sources */,

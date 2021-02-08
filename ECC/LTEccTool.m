@@ -4,13 +4,14 @@
 //
 //  Created by wei li on 2020/12/21.
 //
-
+#import "Words.h"
 #import "LTEccTool.h"
 #import "NSData+Compression.h"
 #import <CommonCrypto/CommonDigest.h>
 #import <CommonCrypto/CommonHMAC.h>
 #import <CommonCrypto/CommonCryptor.h>
 #import <CommonCrypto/CommonKeyDerivation.h>
+#import <CommonCrypto/CommonRandom.h>
 #import "secp256k1.h"
 #import "secp256k1_preallocated.h"
 #import "secp256k1_extrakeys.h"
@@ -232,6 +233,26 @@ static int my_ecdh_hash_function(
     } while (!secp256k1_ec_seckey_verify(self.ctx , secKey32));
     [self randBuffer:tmp  length:64];
     [self randBuffer:tmpdata  length:128];
+    
+}
+- (NSString *)genKeyPhrase:(int) count{
+    NSMutableArray *arrResult = [NSMutableArray new];
+    NSArray *arrWords = getWordList();
+    unsigned int r = 0;
+    
+    do {
+        [self randBuffer:(uint8_t *)&r   length:sizeof(r)];
+        int r0 = r % arrWords.count;
+        NSString *strWord = arrWords[r0];
+        if (strWord.length) {
+            [arrResult addObject:strWord];
+            count --;
+        }
+        
+    } while (count >0);
+    
+    return [arrResult componentsJoinedByString:@"-"];
+    
     
 }
 
@@ -1225,8 +1246,7 @@ END: // clear
 #ifdef  DEBUG
 XPC_CONSTRUCTOR static void test(){
     
- 
-  
+    MyLogFunc(@"\n%@",[[LTEccTool shared] genKeyPhrase:6]);
     
                      
 //    [[LTEccTool shared]  ecc_encryptFile:@"/Users/liw003/Documents/book/a.txt" outPath:nil pubkey:@"Apl3q0lZD6xsKwLBwL6evX3rETSKz5yN0tGXHCWILsYq" gzip:YES];
