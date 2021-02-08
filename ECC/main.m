@@ -131,7 +131,20 @@ int main(int argc, const char * argv[]) {
 //    cmd = "s";
 //    argc = 2;
     if (argc >= 2  && 0 == strcmp(cmd, "g")) {
-        NSDictionary *dic = [[LTEccTool shared] genKeyPair:strSecKey];
+        
+        NSString *keyphrase =  dicArg[@"k"];
+        if(strSecKey && keyphrase){
+            printf("seckey [s] is specified,the key phrass [k] will be ignored");
+        }
+        else if (keyphrase ) {
+            NSData *dataOfPhrase = [keyphrase dataUsingEncoding:NSUTF8StringEncoding];
+            if (dataOfPhrase.length < 10) {
+                PrintErr("key phrase length is too short (%lu < 10)",(unsigned long)dataOfPhrase.length);
+                return 1;
+            }
+        }
+        
+        NSDictionary *dic = [[LTEccTool shared] genKeyPair:strSecKey keyPhrase:keyphrase];
         NSString *priKey = dic[@"priKey"];
         NSString *pubKey = dic[@"pubKey"];
         NSData *data2 = [LTEccTool  base64DeCode:priKey];
@@ -151,12 +164,7 @@ int main(int argc, const char * argv[]) {
             else{
                 fprintf(stdout, "skip\n");
             }
-            return 1;
-            
-            
-        }
-        else{
-            MyLogFunc(@"bb %@",dicArg);
+            return 0;
         }
     }
     else if (argc >= 2  && 0 == strcmp(cmd, "s")) {
@@ -267,7 +275,7 @@ int main(int argc, const char * argv[]) {
         link = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
         
         
-        const NSString *helpfmt = @"ecc %s \n%@\ng [-prikey/secKey/s prikey]  generate keypair  [-S] saveto key chain\
+        const NSString *helpfmt = @"ecc %s \n%@\ng [-prikey/secKey/s prikey]  generate keypair [-k  key phrase] [-S] saveto key chain\
         \ne  -pubkey/p pubkey -m msg [-f inputfilepath] [-o outpath]\
         \nd  -prikey/s prikey -m base64ciphermsg  binary data from stdin [-f inputfilepath] [-o outpath]\
         \nr  -m msg print random art of msg\

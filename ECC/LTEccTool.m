@@ -10,6 +10,7 @@
 #import <CommonCrypto/CommonDigest.h>
 #import <CommonCrypto/CommonHMAC.h>
 #import <CommonCrypto/CommonCryptor.h>
+#import <CommonCrypto/CommonKeyDerivation.h>
 #import "secp256k1.h"
 #import "secp256k1_preallocated.h"
 #import "secp256k1_extrakeys.h"
@@ -167,7 +168,7 @@ static int my_ecdh_hash_function(
 }
 
  
-- (NSDictionary *)genKeyPair:(NSString *)privateKey{
+- (NSDictionary *)genKeyPair:(NSString *)privateKey keyPhrase:(NSString *)phrase{
     NSData *dataPrivate = nil;
     void* pPrivate = NULL;
     unsigned char _keysNew[32];
@@ -183,7 +184,8 @@ static int my_ecdh_hash_function(
     else{
         
         pPrivate = _keysNew;
-        [self genSecKey:pPrivate];
+     
+        [self genSecKey:pPrivate keyPhrase:phrase];
     }
     
     
@@ -219,17 +221,41 @@ static int my_ecdh_hash_function(
     arc4random_buf(buffer, len);
 }
 
-- (void)genSecKey:(unsigned char *)secKey32{
-    char tmp[32] ;
-    //seed for generate seckey
-    uint8 seed[32];
+- (void)_genSecKey:(unsigned char *)secKey32{
+    
+    uint8_t tmp[64];
+    uint8_t tmpdata[128];
     do {
-        
-        [self randBuffer:seed  length:32];
-        [self randBuffer:tmp  length:32];
-        CCHmac(kCCHmacAlgSHA256, tmp, 32, seed, 32, secKey32);
+        [self randBuffer:tmp  length:64];
+        [self randBuffer:tmpdata  length:128];
+        CCHmac(kCCHmacAlgSHA256,tmp ,64,tmpdata,128,secKey32);
     } while (!secp256k1_ec_seckey_verify(self.ctx , secKey32));
+    [self randBuffer:tmp  length:64];
+    [self randBuffer:tmpdata  length:128];
+    
 }
+
+- (void)genSecKey:(unsigned char *)secKey32 keyPhrase:(NSString *)strphrase{
+    NSData *dataPhrase  = nil;
+    if (!strphrase) {
+        [self _genSecKey:secKey32];
+        return;
+    }
+    else{
+        dataPhrase = [strphrase dataUsingEncoding:NSUTF8StringEncoding];
+    }
+    const size_t saltLen = 44;
+    const uint8_t salt[saltLen] ;
+    memcpy((void *)salt, "Kj3rk8+cKYG8sAhXO5gkU5nRrBzuhhS7ts953vdhVHE=", saltLen);
+    
+    int itr = 123456;
+    do {
+        CCKeyDerivationPBKDF(kCCPBKDF2, dataPhrase.bytes, dataPhrase.length, salt, saltLen,  kCCPRFHmacAlgSHA256, itr, secKey32 , 32);
+        itr += 1;
+    } while (!secp256k1_ec_seckey_verify(self.ctx , secKey32));
+
+}
+
  
 - (NSData *)base64ToData:(NSString *)strBase64{
     return [LTEccTool base64DeCode:strBase64];
@@ -261,7 +287,7 @@ static int my_ecdh_hash_function(
     
     
     unsigned char randKey[32];
-    [self genSecKey:randKey];
+    [self _genSecKey:randKey];
     
     secp256k1_pubkey randomPub;
     r = secp256k1_ec_pubkey_create(self.ctx, &randomPub, randKey);
@@ -272,7 +298,7 @@ static int my_ecdh_hash_function(
     unsigned char outHash[64];
     r = secp256k1_ecdh(self.ctx, outHash, &pubkey, randKey, my_ecdh_hash_function, NULL);
     /// 不需要了,重置randkey
-    [self genSecKey:randKey];
+    [self _genSecKey:randKey];
     if (r == 0) {
         PrintErr( "pubkey is not falid");
         return nil;
@@ -892,7 +918,7 @@ END: // clear
         }
          
         unsigned char randKey[32];
-        [self genSecKey:randKey];
+        [self _genSecKey:randKey];
         
         secp256k1_pubkey randomPub;
         r = secp256k1_ec_pubkey_create(self.ctx, &randomPub, randKey);
@@ -903,7 +929,7 @@ END: // clear
         
         r = secp256k1_ecdh(self.ctx, dhHash, &pubkey, randKey, my_ecdh_hash_function, NULL);
         /// 不需要了,重置randkey
-        [self genSecKey:randKey];
+        [self _genSecKey:randKey];
         if (r == 0) {
             PrintErr("pubkey is not falid");
             return ;
@@ -1199,6 +1225,10 @@ END: // clear
 #ifdef  DEBUG
 XPC_CONSTRUCTOR static void test(){
     
+ 
+  
+    
+                     
 //    [[LTEccTool shared]  ecc_encryptFile:@"/Users/liw003/Documents/book/a.txt" outPath:nil pubkey:@"Apl3q0lZD6xsKwLBwL6evX3rETSKz5yN0tGXHCWILsYq" gzip:YES];
 //    [[LTEccTool shared] ecc_decryptFile:@"/Users/liw003/Documents/book/a.txt.ec" outPath:nil secKey:@"z6Uip4ZhgiwxHdmBAblxMmVQLOghm0hNPEBj4x6Xyug=" gzip:YES];
 //

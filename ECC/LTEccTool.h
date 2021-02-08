@@ -15,7 +15,7 @@ NS_ASSUME_NONNULL_BEGIN
  * out:pubKey priKey
  * if privateKey is nil ,generate a new one 
  */
-- (NSDictionary *)genKeyPair:(NSString *)privateKey;
+- (NSDictionary *)genKeyPair:(NSString *)privateKey keyPhrase:(NSString *)phrase;
 
 
 - (NSData *)ecc_encrypt:(NSData *)dataPlainTxt pubkey:(NSString *)pubkeystring;
