@@ -1013,7 +1013,7 @@ END: // clear
     readDateLen = [streamIn read:buffer maxLength:buffersize];
     size_t  encsize = 0;
     
-    unsigned long long zipfilesize = [[[NSFileManager defaultManager] attributesOfItemAtPath:strziptmp error:nil] fileSize];
+    unsigned long long zipfilesize = [[[NSFileManager defaultManager] attributesOfItemAtPath:inFilePath error:nil] fileSize];
     
     
     NSUInteger  minDeltSize = zipfilesize * 0.01;
