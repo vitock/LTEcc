@@ -79,7 +79,7 @@
 }
 
 
-- (void)parser:(NSData *)data{
+- (BOOL)parser:(NSData *)data{
     
     UInt16 type = 0;
     UInt16 ivLen = 0;
@@ -97,6 +97,10 @@
     macLen = CFSwapInt16HostToLittle(macLen);
     ephermPubLen = CFSwapInt16HostToLittle(ephermPubLen);
     
+    if (data.length < ivLen + macLen + ephermPubLen + 8) {
+        return NO;
+    }
+    
     self.type = type;
     size_t idx = 8;
     self.iv = [data subdataWithRange:NSMakeRange(idx, ivLen)];
@@ -107,7 +111,7 @@
     idx += ephermPubLen;
     self.dataEnc = [data subdataWithRange:NSMakeRange(idx, data.length  - idx)];
     
-     
+    return YES;
 }
 
  
@@ -387,7 +391,11 @@ static int my_ecdh_hash_function(
 
 - (NSData *)_ecc_decrypt:(NSData *)dataCipher private:(NSString *)prikey type:(UInt16 *) ptype{
     ECCEncResult *r = [ECCEncResult new];
-    [r parser:dataCipher];
+    if(![r parser:dataCipher]){
+        PrintErr("file content error");
+        return nil;
+    }
+    
     if(ptype){
         *ptype = r.type;
     }
@@ -621,6 +629,11 @@ OS_CONST static NSString *pubkeyforkeychain = @"BLLLgvLL7eoER5gPJ6eFhj4T3GPzSMOl
         UInt16 macLen = 0;
         UInt16 ephermPubLen = 0;
         NSData *data = [[NSData alloc] initWithBytesNoCopy:buffer length:readLen deallocator:NULL];
+        
+        if (data.length < 8) {
+            PrintErr("not a encrypted file");
+            return;
+        }
         
         [data getBytes:&type  range:NSMakeRange(0, 2)];
         [data getBytes:&ivLen  range:NSMakeRange(2, 2)];
