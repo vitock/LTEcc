@@ -908,6 +908,7 @@ END: // clear
     inFilePath =[self dealPath:inFilePath];
     NSString *strOriInputPath = inFilePath;
     NSString *strziptmp = nil;
+    
     if (gzip) {
         strziptmp = [inFilePath stringByDeletingLastPathComponent];
         strziptmp = [NSString stringWithFormat:@"%@/%x.tmp.gz",strziptmp, (1 << 10) +  arc4random()];
@@ -925,14 +926,13 @@ END: // clear
         
     }
     
-    
+   
     if (!outpath) {
         outpath = [strOriInputPath stringByAppendingPathExtension:@"ec"];
     }
-    
     outpath =[self dealPath:outpath];
     outpath = [self dealOutPath:outpath inpath:strOriInputPath isEncrypt:YES];
-    
+        
     NSInputStream *streamIn = [[NSInputStream alloc] initWithFileAtPath:inFilePath];
     NSOutputStream *streamOut = [NSOutputStream outputStreamToFileAtPath:outpath  append:NO];
     [streamOut open];
@@ -1120,11 +1120,11 @@ END: // clear
         char cwd[PATH_MAX];
         memset(cwd, 0, PATH_MAX);
         if (getcwd(cwd, sizeof(cwd)) != NULL) {
-            
         } else {
             perror("getcwd() error");
         }
-        NSString *path2 = [[NSString alloc] initWithFormat:@"%s/%@",cwd,path];
+        NSString *strBase = [[NSString alloc] initWithUTF8String:cwd];
+        NSString *path2 = [[NSString alloc] initWithFormat:@"%@/%@",strBase,path];
         return path2.stringByStandardizingPath;
     }
 }
