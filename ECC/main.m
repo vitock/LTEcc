@@ -78,15 +78,65 @@ void printKey(const void *key,int  size){
     printf("\n");
 }
 
+@interface NSMutableDictionary(xxx)
 
+@end
+@implementation NSMutableDictionary(xxx)
+- (void)safe_setObject:(id)anObject forKey:(NSString *)aKey{
+    if ( aKey ) {
+        if ( anObject==nil ) {
+            [self removeObjectForKey:aKey];
+        }
+        else {
+            /// 同一个
+            id anTempObject = anObject;
+            [self setObject:anTempObject forKey:aKey];
+        }
+    }
+}
+
+
+- (NSString *)getString:(id)key{
+    if (key ) {
+        NSString *v = self[key];
+        if ([v isKindOfClass:[NSString class]]) {
+            return v;
+        }
+    }
+    return nil;
+}
+
+@end
+
+@interface NSMutableArray(xx)
+
+@end
+
+@implementation NSMutableArray(xx)
+
+-(void)safe_addObject:(id)anObject {
+    if ( anObject ) {
+        [self addObject:anObject];
+    }
+}
+
+@end
+
+static NSString *defaultValue = @"1";
 
 int main(int argc, const char * argv[]) {
     int i = 0;
     
     NSMutableDictionary *dicArg = [NSMutableDictionary new];
+    
+    NSString *strPreKey = nil;
     for (int i = 1 ; i < argc ; ++i ) {
         if(argv[i][0] == '-'){
             NSString *strKey = [[NSString alloc] initWithUTF8String:argv[i]+1];
+            strPreKey = strKey;
+            
+            [dicArg setObject:defaultValue forKey:strPreKey];
+            continue;
             i += 1;
             if(i < argc && strKey.length){
                 NSRange rg = NSMakeRange(0, 1);
@@ -108,9 +158,47 @@ int main(int argc, const char * argv[]) {
                 dicArg[strKey] = @"1";
             }
 
+        }else {
+            NSString *strValue = [[NSString alloc] initWithUTF8String:argv[i]];
+            MyLogFunc(@">>>>>....%@ %@",strPreKey,strValue);
+            if (strPreKey) {
+                id preValue = dicArg[strPreKey];
+                if(!preValue){
+                    if (strValue && strPreKey) {
+                        [dicArg setObject:strValue forKey:strPreKey];
+                    }
+                }
+                else if ([preValue isKindOfClass:[NSMutableArray class]]) {
+                    if (strValue) {
+                        [(NSMutableArray *)preValue addObject:strValue];
+                    }
+                }
+                else if([preValue isKindOfClass:[NSString class]]){
+                    NSMutableArray *arr = [NSMutableArray new];
+                    if(defaultValue != preValue){
+                        [arr safe_addObject:preValue];
+                    }
+                    
+                    [arr safe_addObject:strValue];
+                    [dicArg safe_setObject:arr  forKey:strPreKey];
+                }
+            }
+            
+            
+            
         }
     }
     BOOL gzip = ![dicArg[@"z"] isEqualToString:@"0"];
+    
+    NSArray *arrkey = dicArg.allKeys;
+    for (NSString *key in arrkey) {
+        id v = dicArg[key];
+        if ([key isKindOfClass:[NSArray class]] && ![key isEqualToString:@"f"]) {
+            id v0 = [(NSArray *)v firstObject];
+            [dicArg safe_setObject:v0 forKey:key];
+        }
+    }
+    
     MyLogFunc(@"input %@",dicArg);
 
     NSString *strSecKey = dicArg[@"s"];
@@ -142,7 +230,7 @@ int main(int argc, const char * argv[]) {
                     c = 8;
                 }
                 keyphrase = [[LTEccTool shared] genKeyPhrase:MAX(c, 6)];
-                printf("Passphrase:\n");
+                printf("Passphrase:(PBKDF2,sha256 ,salt:base64-Kj3rk8+cKYG8sAhXO5gkU5nRrBzuhhS7ts953vdhVHE= rounds:123456)\n");
                 RedPrint("%s",[keyphrase UTF8String]);
             }
             
@@ -208,12 +296,26 @@ int main(int argc, const char * argv[]) {
         NSData *dataMsg = [strmsg dataUsingEncoding:NSUTF8StringEncoding];
         
         if (!strmsg) {
-            NSString *inpath = dicArg[@"f"];
-            NSString *outpath = dicArg[@"o"];
-            if (inpath.length) {
-                [[LTEccTool shared] ecc_encryptFile:inpath outPath:outpath pubkey:strPubKey gzip:gzip];
-                return 0;
+            
+            id inpath0 = dicArg[@"f"];
+            
+            NSArray *arrPath = nil;
+            if ([inpath0 isKindOfClass:[NSString class]]) {
+                arrPath = @[inpath0];
             }
+            else if([inpath0 isKindOfClass:[NSArray class]]){
+                arrPath = inpath0;
+            }
+            
+            for (NSString *inpath in arrPath) {
+                if (inpath.length) {
+                    
+                    [[LTEccTool shared] ecc_encryptFile:inpath outPath:nil pubkey:strPubKey gzip:gzip];
+                    
+                }
+            }
+            
+            return 0;
         }
         
         if (!strmsg) {
@@ -235,13 +337,32 @@ int main(int argc, const char * argv[]) {
             return 1;
         }
         NSString *strmsg = dicArg[@"m"];
+        
+        
+        
         if (!strmsg) {
-            NSString *inpath = dicArg[@"f"];
-            if (inpath.length) {
-                NSString *outpath = dicArg[@"o"];
-                [[LTEccTool shared] ecc_decryptFile:inpath outPath:outpath secKey:strSecKey gzip:gzip];
-                return 0;
+            id inpath0 = dicArg[@"f"];
+            
+            NSArray *arrPath = nil;
+            if ([inpath0 isKindOfClass:[NSString class]]) {
+                arrPath = @[inpath0];
             }
+            else if([inpath0 isKindOfClass:[NSArray class]]){
+                arrPath = inpath0;
+            }
+            
+            for (NSString *inpath in arrPath) {
+                if (inpath.length) {
+                    
+                    [[LTEccTool shared] ecc_decryptFile:inpath outPath:nil secKey:strSecKey gzip:gzip];
+                    
+                }
+            }
+            
+            return 0;
+            
+            
+            
         }
         
         NSData *dataMsg = nil;
@@ -290,7 +411,6 @@ int main(int argc, const char * argv[]) {
         \nd  -prikey/s prikey -m base64ciphermsg  binary data from stdin [-f inputfilepath] [-o outpath]\
         \nr  -m msg print random art of msg\
         \ns  show saved key in keychain\n\
-        \n[-o]  only works when -f is sepecified\
         \n-z set 0 if you dont want gzip  ";
         ;
         NSString *help = [NSString stringWithFormat:helpfmt,Version,link];

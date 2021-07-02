@@ -336,6 +336,7 @@
 		C42B4BC3258CBCF300C0EE5B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = x86_64;
 				CODE_SIGN_STYLE = Automatic;
 				GCC_PREFIX_HEADER = ECC/Header.h;
 				LIBRARY_SEARCH_PATHS = (
@@ -349,6 +350,7 @@
 		C42B4BC4258CBCF300C0EE5B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = x86_64;
 				CODE_SIGN_STYLE = Automatic;
 				GCC_PREFIX_HEADER = ECC/Header.h;
 				LIBRARY_SEARCH_PATHS = (
