@@ -307,15 +307,18 @@ int main(int argc, const char * argv[]) {
                 arrPath = inpath0;
             }
             
-            for (NSString *inpath in arrPath) {
-                if (inpath.length) {
-                    
-                    [[LTEccTool shared] ecc_encryptFile:inpath outPath:nil pubkey:strPubKey gzip:gzip];
-                    
+            if (arrPath.count) {
+                for (NSString *inpath in arrPath) {
+                    if (inpath.length) {
+                        
+                        [[LTEccTool shared] ecc_encryptFile:inpath outPath:nil pubkey:strPubKey gzip:gzip];
+                        
+                    }
                 }
+                
+                return 0;
             }
-            
-            return 0;
+           
         }
         
         if (!strmsg) {
@@ -351,15 +354,17 @@ int main(int argc, const char * argv[]) {
                 arrPath = inpath0;
             }
             
-            for (NSString *inpath in arrPath) {
-                if (inpath.length) {
-                    
-                    [[LTEccTool shared] ecc_decryptFile:inpath outPath:nil secKey:strSecKey gzip:gzip];
-                    
+            if (arrPath.count) {
+                for (NSString *inpath in arrPath) {
+                    if (inpath.length) {
+                        
+                        [[LTEccTool shared] ecc_decryptFile:inpath outPath:nil secKey:strSecKey gzip:gzip];
+                        
+                    }
                 }
+                
+                return 0;
             }
-            
-            return 0;
             
             
             
