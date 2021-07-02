@@ -38,6 +38,6 @@ metamacro_at20( __VA_ARGS__, 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0)
 #define PrintErr(...) CAT(__red__,metamacro_is_only_one(__VA_ARGS__))(__VA_ARGS__)
 #define RedPrint(...) CAT(__red__,metamacro_is_only_one(__VA_ARGS__))(__VA_ARGS__)
 
-#define Version "0.0.4.3"
+#define Version "0.0.4.4"
 
 #endif /* Header_h */
