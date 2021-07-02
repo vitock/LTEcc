@@ -193,7 +193,7 @@ int main(int argc, const char * argv[]) {
     NSArray *arrkey = dicArg.allKeys;
     for (NSString *key in arrkey) {
         id v = dicArg[key];
-        if ([key isKindOfClass:[NSArray class]] && ![key isEqualToString:@"f"]) {
+        if ([v isKindOfClass:[NSArray class]] && ![key isEqualToString:@"f"]) {
             id v0 = [(NSArray *)v firstObject];
             [dicArg safe_setObject:v0 forKey:key];
         }
