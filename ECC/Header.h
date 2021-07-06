@@ -32,8 +32,8 @@ metamacro_at20( __VA_ARGS__, 1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0)
 #define __err__0(fmt) fprintf(stderr, ("\033[31;47m" fmt "\033[0m\n"))
 #define __err__1(fmt,...) fprintf(stderr, ("\033[31;47m" fmt "\033[0m\n"),__VA_ARGS__)
 
-#define __red__0(fmt) fprintf(stdout, ("\033[91;40m " fmt " \033[0m"))
-#define __red__1(fmt,...) fprintf(stdout, ("\033[91;40m " fmt " \033[0m"),__VA_ARGS__)
+#define __red__0(fmt) fprintf(stdout, ("\033[1;31m" fmt " \033[0m"))
+#define __red__1(fmt,...) fprintf(stdout, ("\033[1;31m" fmt " \033[0m"),__VA_ARGS__)
 
 #define PrintErr(...) CAT(__red__,metamacro_is_only_one(__VA_ARGS__))(__VA_ARGS__)
 #define RedPrint(...) CAT(__red__,metamacro_is_only_one(__VA_ARGS__))(__VA_ARGS__)

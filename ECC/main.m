@@ -188,7 +188,6 @@ int main(int argc, const char * argv[]) {
             
         }
     }
-    BOOL gzip = ![dicArg[@"z"] isEqualToString:@"0"];
     
     NSArray *arrkey = dicArg.allKeys;
     for (NSString *key in arrkey) {
@@ -198,7 +197,7 @@ int main(int argc, const char * argv[]) {
             [dicArg safe_setObject:v0 forKey:key];
         }
     }
-    
+    BOOL gzip = ![dicArg[@"z"] isEqualToString:@"0"];
     MyLogFunc(@"input %@",dicArg);
 
     NSString *strSecKey = dicArg[@"s"];
